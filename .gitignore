@@ -10,3 +10,12 @@
 *.lai
 *.la
 *.a
+
+# Compiled Executable files
+a.out
+
+# System files
+.DS_Store*
+
+# Build directories
+bin
