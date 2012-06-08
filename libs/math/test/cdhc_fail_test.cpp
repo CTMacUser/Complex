@@ -9,6 +9,7 @@
 #include "boost/math/cd_hypercomplex.hpp"
 
 #include <cassert>
+#include <tuple>
 
 
 // Pre-processor controls for each error type.  Change the control values within
@@ -53,6 +54,21 @@
 #endif
 #ifndef CONTROL_TEST_FAIL_AR_OP_EQUALS_L2S
 #define CONTROL_TEST_FAIL_AR_OP_EQUALS_L2S  1
+#endif
+#ifndef CONTROL_TEST_FAIL_AI_TUPLE_ELEMENT
+#define CONTROL_TEST_FAIL_AI_TUPLE_ELEMENT  1
+#endif
+#ifndef CONTROL_TEST_FAIL_AR_TUPLE_ELEMENT
+#define CONTROL_TEST_FAIL_AR_TUPLE_ELEMENT  1
+#endif
+#ifndef CONTROL_TEST_FAIL_AI_GET
+#define CONTROL_TEST_FAIL_AI_GET  1
+#endif
+#ifndef CONTROL_TEST_FAIL_AR_BASE_GET
+#define CONTROL_TEST_FAIL_AR_BASE_GET  1
+#endif
+#ifndef CONTROL_TEST_FAIL_AR_MULTILEVEL_GET
+#define CONTROL_TEST_FAIL_AR_MULTILEVEL_GET  1
 #endif
 
 
@@ -154,6 +170,101 @@ int  main()
 #endif
 #if CONTROL_TEST_FAIL_AR_OP_EQUALS_L2S
     assert( !(test9 == test7) );
+#endif
+
+    // Errors happen if the tuple_element index meets or exceeds the value
+    // from tuple_size.
+    using std::tuple_element;
+
+#if CONTROL_TEST_FAIL_AI_TUPLE_ELEMENT
+    typename tuple_element<1, cdh_complex_ai<no_boolean_convert_t<int>,
+     0>>::type  test10;
+    typename tuple_element<2, cdh_complex_ai<no_boolean_convert_t<int>,
+     1>>::type  test11;
+    typename tuple_element<4, cdh_complex_ai<no_boolean_convert_t<int>,
+     2>>::type  test12;
+    typename tuple_element<8, cdh_complex_ai<no_boolean_convert_t<int>,
+     3>>::type  test13;
+
+    assert( sizeof(test10) >= sizeof(int) );
+    assert( sizeof(test11) >= sizeof(int) );
+    assert( sizeof(test12) >= sizeof(int) );
+    assert( sizeof(test13) >= sizeof(int) );
+#endif
+
+#if CONTROL_TEST_FAIL_AR_TUPLE_ELEMENT
+    typename tuple_element<3, cdh_complex_ar<no_boolean_convert_t<int>,
+     0>>::type  test14;
+    typename tuple_element<5, cdh_complex_ar<no_boolean_convert_t<int>,
+     1>>::type  test15;
+    typename tuple_element<7, cdh_complex_ar<no_boolean_convert_t<int>,
+     2>>::type  test16;
+    typename tuple_element<9, cdh_complex_ar<no_boolean_convert_t<int>,
+     3>>::type  test17;
+
+    assert( sizeof(test14) >= sizeof(int) );
+    assert( sizeof(test15) >= sizeof(int) );
+    assert( sizeof(test16) >= sizeof(int) );
+    assert( sizeof(test17) >= sizeof(int) );
+#endif
+
+    // The index-out-of-bounds errors can happen with "get" too.
+    using boost::math::get;
+
+#if CONTROL_TEST_FAIL_AI_GET
+    cdh_complex_ai<no_boolean_convert_t<int>, 0>          test18;
+    cdh_complex_ai<no_boolean_convert_t<int>, 1>          test19;
+    cdh_complex_ai<no_boolean_convert_t<int>, 2>          test20;
+    cdh_complex_ai<no_boolean_convert_t<int>, 3>          test21;
+    cdh_complex_ai<no_boolean_convert_t<int>, 0> const &  ctest18 = test18;
+    cdh_complex_ai<no_boolean_convert_t<int>, 1> const &  ctest19 = test19;
+    cdh_complex_ai<no_boolean_convert_t<int>, 2> const &  ctest20 = test20;
+    cdh_complex_ai<no_boolean_convert_t<int>, 3> const &  ctest21 = test21;
+
+    assert( sizeof(get<3>( test18 )) >= sizeof(int) );
+    assert( sizeof(get<5>( test19 )) >= sizeof(int) );
+    assert( sizeof(get<7>( test20 )) >= sizeof(int) );
+    assert( sizeof(get<9>( test21 )) >= sizeof(int) );
+
+    assert( sizeof(get<4>( ctest18 )) >= sizeof(int) );
+    assert( sizeof(get<6>( ctest19 )) >= sizeof(int) );
+    assert( sizeof(get<9>( ctest20 )) >= sizeof(int) );
+    assert( sizeof(get<11>( ctest21 )) >= sizeof(int) );
+
+    assert( sizeof(get<5>( decltype(test18){} )) >= sizeof(int) );
+    assert( sizeof(get<7>( decltype(test19){} )) >= sizeof(int) );
+    assert( sizeof(get<11>( decltype(test20){} )) >= sizeof(int) );
+    assert( sizeof(get<13>( decltype(test21){} )) >= sizeof(int) );
+#endif
+
+#if CONTROL_TEST_FAIL_AR_BASE_GET
+    cdh_complex_ar<no_boolean_convert_t<int>, 0>          test22;
+    cdh_complex_ar<no_boolean_convert_t<int>, 0> const &  ctest22 = test22;
+
+    assert( sizeof(get<1>( test22 )) >= sizeof(int) );
+    assert( sizeof(get<2>( ctest22 )) >= sizeof(int) );
+    assert( sizeof(get<3>( decltype(test22){} )) >= sizeof(int) );
+#endif
+
+#if CONTROL_TEST_FAIL_AR_MULTILEVEL_GET
+    cdh_complex_ar<no_boolean_convert_t<int>, 1>          test23;
+    cdh_complex_ar<no_boolean_convert_t<int>, 2>          test24;
+    cdh_complex_ar<no_boolean_convert_t<int>, 3>          test25;
+    cdh_complex_ar<no_boolean_convert_t<int>, 1> const &  ctest23 = test23;
+    cdh_complex_ar<no_boolean_convert_t<int>, 2> const &  ctest24 = test24;
+    cdh_complex_ar<no_boolean_convert_t<int>, 3> const &  ctest25 = test25;
+
+    assert( sizeof(get<2>( test23 )) >= sizeof(int) );
+    assert( sizeof(get<3>( ctest23 )) >= sizeof(int) );
+    assert( sizeof(get<4>( decltype(test23){} )) >= sizeof(int) );
+
+    assert( sizeof(get<4>( test24 )) >= sizeof(int) );
+    assert( sizeof(get<5>( ctest24 )) >= sizeof(int) );
+    assert( sizeof(get<6>( decltype(test24){} )) >= sizeof(int) );
+
+    assert( sizeof(get<8>( test25 )) >= sizeof(int) );
+    assert( sizeof(get<9>( ctest25 )) >= sizeof(int) );
+    assert( sizeof(get<10>( decltype(test25){} )) >= sizeof(int) );
 #endif
 
     return 0;

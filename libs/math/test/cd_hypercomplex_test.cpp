@@ -20,6 +20,7 @@
 #include <ios>          // for std::ios_base
 #include <limits>       // for std::numeric_limits
 #include <random>       // for std::default_random_engine, etc.
+#include <tuple>        // for std::tuple_size, tuple_element
 #include <type_traits>  // for std::true_type, false_type, is_same, etc.
 
 #ifndef CONTROL_USE_HW_RANDOM_ENGINE
@@ -775,3 +776,225 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( sign_and_width_output_tests, T, signing_types )
 
 BOOST_AUTO_TEST_SUITE_END()  // core_writing_cdhc_tests
 BOOST_AUTO_TEST_SUITE_END()  // core_cdhc_tests
+
+BOOST_AUTO_TEST_SUITE( tuple_cdhc_tests )
+
+BOOST_AUTO_TEST_CASE_TEMPLATE( compile_time_tuple_tests, T, numeric_types )
+{
+    using std::tuple_size;
+    using std::is_same;
+    using std::tuple_element;
+
+    // Confirm that the tuple-size attribute works correctly
+    SIMPLE_STATIC_ASSERT( tuple_size<real_ai_t<T>>::value == 1 );
+    SIMPLE_STATIC_ASSERT( tuple_size<real_ar_t<T>>::value == 1 );
+    SIMPLE_STATIC_ASSERT( tuple_size<complex_ai_t<T>>::value == 2 );
+    SIMPLE_STATIC_ASSERT( tuple_size<complex_ar_t<T>>::value == 2 );
+    SIMPLE_STATIC_ASSERT( tuple_size<quaternion_ai_t<T>>::value == 4 );
+    SIMPLE_STATIC_ASSERT( tuple_size<quaternion_ar_t<T>>::value == 4 );
+    SIMPLE_STATIC_ASSERT( tuple_size<octonion_ai_t<T>>::value == 8 );
+    SIMPLE_STATIC_ASSERT( tuple_size<octonion_ar_t<T>>::value == 8 );
+
+    // Confirm that the tuple-element attribute works correctly
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<0,
+     real_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<0,
+     real_ar_t<T>>::type>::value );
+
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<0,
+     complex_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<1,
+     complex_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<0,
+     complex_ar_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<1,
+     complex_ar_t<T>>::type>::value );
+
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<0,
+     quaternion_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<1,
+     quaternion_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<2,
+     quaternion_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<3,
+     quaternion_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<0,
+     quaternion_ar_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<1,
+     quaternion_ar_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<2,
+     quaternion_ar_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<3,
+     quaternion_ar_t<T>>::type>::value );
+
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<0,
+     octonion_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<1,
+     octonion_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<2,
+     octonion_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<3,
+     octonion_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<4,
+     octonion_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<5,
+     octonion_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<6,
+     octonion_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<7,
+     octonion_ai_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<0,
+     octonion_ar_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<1,
+     octonion_ar_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<2,
+     octonion_ar_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<3,
+     octonion_ar_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<4,
+     octonion_ar_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<5,
+     octonion_ar_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<6,
+     octonion_ar_t<T>>::type>::value );
+    SIMPLE_STATIC_ASSERT( is_same<T, typename tuple_element<7,
+     octonion_ar_t<T>>::type>::value );
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE( tuple_access_tests, T, numeric_types )
+{
+    using boost::math::get;
+
+    // Mutable l-value access
+    real_ai_t<T>        test0a{ {1} };
+    complex_ai_t<T>     test1a{ {2, 3} };
+    quaternion_ai_t<T>  test2a{ {4, 5, 6, 7} };
+    octonion_ai_t<T>    test3a{ {8, 9, 10, 11, 12, 13, 14, 15} };
+
+    BOOST_CHECK_EQUAL( get<0>(test0a), (T)1 );
+    BOOST_CHECK_EQUAL( get<0>(test1a), (T)2 );
+    BOOST_CHECK_EQUAL( get<1>(test1a), (T)3 );
+    BOOST_CHECK_EQUAL( get<0>(test2a), (T)4 );
+    BOOST_CHECK_EQUAL( get<1>(test2a), (T)5 );
+    BOOST_CHECK_EQUAL( get<2>(test2a), (T)6 );
+    BOOST_CHECK_EQUAL( get<3>(test2a), (T)7 );
+    BOOST_CHECK_EQUAL( get<0>(test3a), (T)8 );
+    BOOST_CHECK_EQUAL( get<1>(test3a), (T)9 );
+    BOOST_CHECK_EQUAL( get<2>(test3a), (T)10 );
+    BOOST_CHECK_EQUAL( get<3>(test3a), (T)11 );
+    BOOST_CHECK_EQUAL( get<4>(test3a), (T)12 );
+    BOOST_CHECK_EQUAL( get<5>(test3a), (T)13 );
+    BOOST_CHECK_EQUAL( get<6>(test3a), (T)14 );
+    BOOST_CHECK_EQUAL( get<7>(test3a), (T)15 );
+
+    // Immutable l-value access
+    real_ai_t<T> const &        ctest0a = test0a;
+    complex_ai_t<T> const &     ctest1a = test1a;
+    quaternion_ai_t<T> const &  ctest2a = test2a;
+    octonion_ai_t<T> const &    ctest3a = test3a;
+
+    BOOST_CHECK_EQUAL( get<0>(ctest0a), (T)1 );
+    BOOST_CHECK_EQUAL( get<0>(ctest1a), (T)2 );
+    BOOST_CHECK_EQUAL( get<1>(ctest1a), (T)3 );
+    BOOST_CHECK_EQUAL( get<0>(ctest2a), (T)4 );
+    BOOST_CHECK_EQUAL( get<1>(ctest2a), (T)5 );
+    BOOST_CHECK_EQUAL( get<2>(ctest2a), (T)6 );
+    BOOST_CHECK_EQUAL( get<3>(ctest2a), (T)7 );
+    BOOST_CHECK_EQUAL( get<0>(ctest3a), (T)8 );
+    BOOST_CHECK_EQUAL( get<1>(ctest3a), (T)9 );
+    BOOST_CHECK_EQUAL( get<2>(ctest3a), (T)10 );
+    BOOST_CHECK_EQUAL( get<3>(ctest3a), (T)11 );
+    BOOST_CHECK_EQUAL( get<4>(ctest3a), (T)12 );
+    BOOST_CHECK_EQUAL( get<5>(ctest3a), (T)13 );
+    BOOST_CHECK_EQUAL( get<6>(ctest3a), (T)14 );
+    BOOST_CHECK_EQUAL( get<7>(ctest3a), (T)15 );
+
+    // (Mutable) r-value access
+    auto  rtest0a = [=] () -> decltype(test0a) { return test0a; };
+    auto  rtest1a = [=] () -> decltype(test1a) { return test1a; };
+    auto  rtest2a = [=] () -> decltype(test2a) { return test2a; };
+    auto  rtest3a = [=] () -> decltype(test3a) { return test3a; };
+
+    BOOST_CHECK_EQUAL( get<0>(rtest0a()), (T)1 );
+    BOOST_CHECK_EQUAL( get<0>(rtest1a()), (T)2 );
+    BOOST_CHECK_EQUAL( get<1>(rtest1a()), (T)3 );
+    BOOST_CHECK_EQUAL( get<0>(rtest2a()), (T)4 );
+    BOOST_CHECK_EQUAL( get<1>(rtest2a()), (T)5 );
+    BOOST_CHECK_EQUAL( get<2>(rtest2a()), (T)6 );
+    BOOST_CHECK_EQUAL( get<3>(rtest2a()), (T)7 );
+    BOOST_CHECK_EQUAL( get<0>(rtest3a()), (T)8 );
+    BOOST_CHECK_EQUAL( get<1>(rtest3a()), (T)9 );
+    BOOST_CHECK_EQUAL( get<2>(rtest3a()), (T)10 );
+    BOOST_CHECK_EQUAL( get<3>(rtest3a()), (T)11 );
+    BOOST_CHECK_EQUAL( get<4>(rtest3a()), (T)12 );
+    BOOST_CHECK_EQUAL( get<5>(rtest3a()), (T)13 );
+    BOOST_CHECK_EQUAL( get<6>(rtest3a()), (T)14 );
+    BOOST_CHECK_EQUAL( get<7>(rtest3a()), (T)15 );
+
+    // Repeat
+    real_ar_t<T>        test0b{ {16} };
+    complex_ar_t<T>     test1b{ {{ {17} }, { {18} }} };
+    quaternion_ar_t<T>  test2b{ {{{{{19}}, {{20}}}}, {{{{21}}, {{22}}}}} };
+    octonion_ar_t<T>    test3b{ {{{{{{{23}}, {{24}}}}, {{{{25}}, {{26}}}}}},
+     {{{{{{27}}, {{28}}}}, {{{{29}}, {{30}}}}}}} };
+
+    real_ar_t<T> const &        ctest0b = test0b;
+    complex_ar_t<T> const &     ctest1b = test1b;
+    quaternion_ar_t<T> const &  ctest2b = test2b;
+    octonion_ar_t<T> const &    ctest3b = test3b;
+
+    auto  rtest0b = [=] () -> decltype(test0b) { return test0b; };
+    auto  rtest1b = [=] () -> decltype(test1b) { return test1b; };
+    auto  rtest2b = [=] () -> decltype(test2b) { return test2b; };
+    auto  rtest3b = [=] () -> decltype(test3b) { return test3b; };
+
+    BOOST_CHECK_EQUAL( get<0>(test0b), (T)16 );
+    BOOST_CHECK_EQUAL( get<0>(test1b), (T)17 );
+    BOOST_CHECK_EQUAL( get<1>(test1b), (T)18 );
+    BOOST_CHECK_EQUAL( get<0>(test2b), (T)19 );
+    BOOST_CHECK_EQUAL( get<1>(test2b), (T)20 );
+    BOOST_CHECK_EQUAL( get<2>(test2b), (T)21 );
+    BOOST_CHECK_EQUAL( get<3>(test2b), (T)22 );
+    BOOST_CHECK_EQUAL( get<0>(test3b), (T)23 );
+    BOOST_CHECK_EQUAL( get<1>(test3b), (T)24 );
+    BOOST_CHECK_EQUAL( get<2>(test3b), (T)25 );
+    BOOST_CHECK_EQUAL( get<3>(test3b), (T)26 );
+    BOOST_CHECK_EQUAL( get<4>(test3b), (T)27 );
+    BOOST_CHECK_EQUAL( get<5>(test3b), (T)28 );
+    BOOST_CHECK_EQUAL( get<6>(test3b), (T)29 );
+    BOOST_CHECK_EQUAL( get<7>(test3b), (T)30 );
+
+    BOOST_CHECK_EQUAL( get<0>(ctest0b), (T)16 );
+    BOOST_CHECK_EQUAL( get<0>(ctest1b), (T)17 );
+    BOOST_CHECK_EQUAL( get<1>(ctest1b), (T)18 );
+    BOOST_CHECK_EQUAL( get<0>(ctest2b), (T)19 );
+    BOOST_CHECK_EQUAL( get<1>(ctest2b), (T)20 );
+    BOOST_CHECK_EQUAL( get<2>(ctest2b), (T)21 );
+    BOOST_CHECK_EQUAL( get<3>(ctest2b), (T)22 );
+    BOOST_CHECK_EQUAL( get<0>(ctest3b), (T)23 );
+    BOOST_CHECK_EQUAL( get<1>(ctest3b), (T)24 );
+    BOOST_CHECK_EQUAL( get<2>(ctest3b), (T)25 );
+    BOOST_CHECK_EQUAL( get<3>(ctest3b), (T)26 );
+    BOOST_CHECK_EQUAL( get<4>(ctest3b), (T)27 );
+    BOOST_CHECK_EQUAL( get<5>(ctest3b), (T)28 );
+    BOOST_CHECK_EQUAL( get<6>(ctest3b), (T)29 );
+    BOOST_CHECK_EQUAL( get<7>(ctest3b), (T)30 );
+
+    BOOST_CHECK_EQUAL( get<0>(rtest0b()), (T)16 );
+    BOOST_CHECK_EQUAL( get<0>(rtest1b()), (T)17 );
+    BOOST_CHECK_EQUAL( get<1>(rtest1b()), (T)18 );
+    BOOST_CHECK_EQUAL( get<0>(rtest2b()), (T)19 );
+    BOOST_CHECK_EQUAL( get<1>(rtest2b()), (T)20 );
+    BOOST_CHECK_EQUAL( get<2>(rtest2b()), (T)21 );
+    BOOST_CHECK_EQUAL( get<3>(rtest2b()), (T)22 );
+    BOOST_CHECK_EQUAL( get<0>(rtest3b()), (T)23 );
+    BOOST_CHECK_EQUAL( get<1>(rtest3b()), (T)24 );
+    BOOST_CHECK_EQUAL( get<2>(rtest3b()), (T)25 );
+    BOOST_CHECK_EQUAL( get<3>(rtest3b()), (T)26 );
+    BOOST_CHECK_EQUAL( get<4>(rtest3b()), (T)27 );
+    BOOST_CHECK_EQUAL( get<5>(rtest3b()), (T)28 );
+    BOOST_CHECK_EQUAL( get<6>(rtest3b()), (T)29 );
+    BOOST_CHECK_EQUAL( get<7>(rtest3b()), (T)30 );
+}
+
+BOOST_AUTO_TEST_SUITE_END()  // tuple_cdhc_tests

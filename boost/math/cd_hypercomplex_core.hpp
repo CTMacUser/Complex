@@ -28,6 +28,7 @@
 #define BOOST_MATH_CD_HYPERCOMPLEX_CORE_HPP
 
 #include <cstddef>
+#include <tuple>
 #include <type_traits>
 
 
@@ -570,8 +571,161 @@ auto  dynamic_rank( cdh_complex_ar<T, R> const &x )
 { return x.b[1] ? R : dynamic_rank(x.b[ 0 ]); }
 
 
+//  Hypercomplex number access function definitions  -------------------------//
+
+/** \brief  Extract the component with the given index from the given value.
+
+    This function and its overloads provides an interface compatible with
+    `std::tuple` for accessing elements.
+
+    \pre  0 \<= `I` \< `decltype(x)\::dimensions`.
+
+    \tparam I  The index of the desired component.
+
+    \param[in] x  A reference to the hypercomplex number object to be inspected.
+
+    \throws  Nothing.  However, a compile-time error will occur if `I` exceeds
+             its bounds.
+
+    \returns  A reference to the desired component.  It will match the r-value
+              vs. l-value vs. `const` l-value state as the source object.
+ */
+template < std::size_t I, typename T, std::size_t R >
+inline constexpr
+auto  get( cdh_complex_ai<T, R> const &x ) noexcept -> T const &
+{
+    static_assert( I < cdh_complex_ai<T,R>::dimensions, "index out of bounds" );
+
+    return x.c[ I ];
+}
+
+//! \overload
+template < std::size_t I, typename T, std::size_t R >
+inline constexpr
+auto  get( cdh_complex_ai<T, R> &x ) noexcept -> T &
+{
+    static_assert( I < cdh_complex_ai<T,R>::dimensions, "index out of bounds" );
+
+    return x.c[ I ];
+}
+
+//! \overload
+template < std::size_t I, typename T, std::size_t R >
+inline constexpr
+auto  get( cdh_complex_ai<T, R> &&x ) noexcept -> T &&
+{
+    static_assert( I < cdh_complex_ai<T,R>::dimensions, "index out of bounds" );
+
+    return static_cast<T &&>( x.c[I] );
+}
+
+//! \overload
+template < std::size_t I, typename T >
+inline constexpr
+auto  get( cdh_complex_ar<T, 0> const &x ) noexcept -> T const &
+{
+    static_assert( !I, "index out of bounds" );
+
+    return x.r[ I ];
+}
+
+//! \overload
+template < std::size_t I, typename T >
+inline constexpr
+auto  get( cdh_complex_ar<T, 0> &x ) noexcept -> T &
+{
+    static_assert( !I, "index out of bounds" );
+
+    return x.r[ I ];
+}
+
+//! \overload
+template < std::size_t I, typename T >
+inline constexpr
+auto  get( cdh_complex_ar<T, 0> &&x ) noexcept -> T &&
+{
+    static_assert( !I, "index out of bounds" );
+
+    return static_cast<T &&>( x.r[I] );
+}
+
+//! \overload
+template < std::size_t I, typename T, std::size_t R >
+inline constexpr
+auto  get( cdh_complex_ar<T, R> const &x ) noexcept -> T const &
+{
+    static_assert( I < cdh_complex_ar<T,R>::dimensions, "index out of bounds" );
+
+    return get<I % (cdh_complex_ar<T,R>::dimensions / 2u)>( x.b[I >= ( x.size()
+     / 2u )] );
+}
+
+//! \overload
+template < std::size_t I, typename T, std::size_t R >
+inline constexpr
+auto  get( cdh_complex_ar<T, R> &x ) noexcept -> T &
+{
+    static_assert( I < cdh_complex_ar<T,R>::dimensions, "index out of bounds" );
+
+    return get<I % (cdh_complex_ar<T,R>::dimensions / 2u)>( x.b[I >= ( x.size()
+     / 2u )] );
+}
+
+//! \overload
+template < std::size_t I, typename T, std::size_t R >
+inline constexpr
+auto  get( cdh_complex_ar<T, R> &&x ) noexcept -> T &&
+{ return static_cast<T &&>(get<I>( x )); }
+
+
 }  // namespace math
 }  // namespace boost
+
+
+namespace std
+{
+
+
+//  Class-template specializations for std::tuple traits classes  ------------//
+
+//! Meta-function for the number of component elements in `cdh_complex_ai`.
+template < typename T, size_t R >
+class tuple_size< ::boost::math::cdh_complex_ai<T,R> >
+    : public integral_constant< size_t, ::boost::math::cdh_complex_ai<T,
+      R>::dimensions >
+{ };
+
+//! Meta-function for the number of component elements in `cdh_complex_ar`.
+template < typename T, size_t R >
+class tuple_size< ::boost::math::cdh_complex_ar<T,R> >
+    : public integral_constant< size_t, ::boost::math::cdh_complex_ar<T,
+      R>::dimensions >
+{ };
+
+//! Meta-function for the component type within `cdh_complex_ai`.
+template < size_t I, typename T, size_t R >
+class tuple_element< I, ::boost::math::cdh_complex_ai<T,R> >
+{
+    static_assert( I < (::boost::math::cdh_complex_ai<T, R>::dimensions),
+     "index out of bounds" );
+
+public:
+    typedef T  type;
+};
+
+//! Meta-function for the component type within `cdh_complex_ar`.
+template < size_t I, typename T, size_t R >
+class tuple_element< I, ::boost::math::cdh_complex_ar<T,R> >
+{
+    static_assert( I < (::boost::math::cdh_complex_ar<T, R>::dimensions),
+     "index out of bounds" );
+
+public:
+    typedef T  type;
+};
+
+
+}  // namespace std
 
 
 #endif  // BOOST_MATH_CD_HYPERCOMPLEX_CORE_HPP
