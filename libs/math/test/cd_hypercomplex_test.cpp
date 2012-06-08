@@ -998,3 +998,26 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( tuple_access_tests, T, numeric_types )
 }
 
 BOOST_AUTO_TEST_SUITE_END()  // tuple_cdhc_tests
+
+BOOST_AUTO_TEST_CASE_TEMPLATE( iteration_tests, T, numeric_types )
+{
+    using boost::math::get;
+
+    octonion_ar_t<T>          test1{};
+    octonion_ar_t<T> const &  ctest1 = test1;
+    unsigned                  counter = 0u;
+
+    ctest1.iterate( [&counter](T const &x){counter += !x;} );
+    BOOST_CHECK_EQUAL( counter, ctest1.size() );
+
+    counter = 1u;
+    test1.iterate( [&counter](T &x){x = counter * counter; ++counter;} );
+    BOOST_CHECK_EQUAL( get<0>(ctest1), (T)1 );
+    BOOST_CHECK_EQUAL( get<1>(ctest1), (T)4 );
+    BOOST_CHECK_EQUAL( get<2>(ctest1), (T)9 );
+    BOOST_CHECK_EQUAL( get<3>(ctest1), (T)16 );
+    BOOST_CHECK_EQUAL( get<4>(ctest1), (T)25 );
+    BOOST_CHECK_EQUAL( get<5>(ctest1), (T)36 );
+    BOOST_CHECK_EQUAL( get<6>(ctest1), (T)49 );
+    BOOST_CHECK_EQUAL( get<7>(ctest1), (T)64 );
+}

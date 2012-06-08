@@ -30,6 +30,7 @@
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 
 namespace boost
@@ -228,6 +229,13 @@ struct cdh_complex_ar<CommutativeRing, 0>
     constexpr
     auto  size() const noexcept -> std::size_t;
 
+    //! Iterate a function call over the component, mutable access.
+    template < typename Function >
+    void  iterate( Function &&f );
+    //! Iterate a function call over the component, immutable access.
+    template < typename Function >
+    void  iterate( Function &&f ) const;
+
     // Operators
     //! \copybrief cdh_complex_ai::operator bool()const
     constexpr explicit
@@ -286,6 +294,13 @@ struct cdh_complex_ar
     //! \copybrief cdh_complex_ai::size()const
     constexpr
     auto  size() const noexcept -> std::size_t;
+
+    //! Iterate a function call over the components, mutable access.
+    template < typename Function >
+    void  iterate( Function &&f );
+    //! Iterate a function call over the components, immutable access.
+    template < typename Function >
+    void  iterate( Function &&f ) const;
 
     // Operators
     //! \copybrief cdh_complex_ai::operator bool()const
@@ -463,6 +478,74 @@ inline constexpr
 auto
 cdh_complex_ar<CommutativeRing, Rank>::size() const noexcept -> std::size_t
 { return dimensions; }
+
+/** Calls the given function, using a (mutable l-value) reference to the stored
+    component as the sole parameter.
+
+    \tparam Function  The type of `f`.
+
+    \param[in] f  The function to be called.  It may be a function pointer, a
+                  function object, or a lambda.
+
+    \throws  Whatever calling `f` with the stored component can throw.
+ */
+template < typename CommutativeRing >
+template < typename Function >
+inline
+void  cdh_complex_ar<CommutativeRing, 0>::iterate( Function &&f )
+{ std::forward<Function>(f)(r[ 0 ]); }
+
+/** Calls the given function, using a (`const` l-value) reference to the stored
+    component as the sole parameter.
+
+    \tparam Function  The type of `f`.
+
+    \param[in] f  The function to be called.  It may be a function pointer, a
+                  function object, or a lambda.
+
+    \throws  Whatever calling `f` with the stored component can throw.
+ */
+template < typename CommutativeRing >
+template < typename Function >
+inline
+void  cdh_complex_ar<CommutativeRing, 0>::iterate( Function &&f ) const
+{ std::forward<Function>(f)(r[ 0 ]); }
+
+/** Calls the given function, using (mutable l-value) references to each of the
+    stored components, in order of increasing index, as the sole parameter.
+
+    \tparam Function  The type of `f`.
+
+    \param[in] f  The function to be called.  It may be a function pointer, a
+                  function object, or a lambda.
+
+    \throws  Whatever calling `f` with a component can throw.
+ */
+template < typename CommutativeRing, std::size_t Rank >
+template < typename Function >
+void  cdh_complex_ar<CommutativeRing, Rank>::iterate( Function &&f )
+{
+    b[ 0 ].iterate( std::forward<Function>(f) );
+    b[ 1 ].iterate( std::forward<Function>(f) );
+}
+
+/** Calls the given function, using a (`const` l-value) reference to each of the
+    stored components, in order of increasing index, as the sole parameter.
+
+    \tparam Function  The type of `f`.
+
+    \param[in] f  The function to be called.  It may be a function pointer, a
+                  function object, or a lambda.
+
+    \throws  Whatever calling `f` with a component can throw.
+ */
+template < typename CommutativeRing, std::size_t Rank >
+template < typename Function >
+void  cdh_complex_ar<CommutativeRing, Rank>::iterate( Function &&f ) const
+{
+    b[ 0 ].iterate( std::forward<Function>(f) );
+    b[ 1 ].iterate( std::forward<Function>(f) );
+}
 
 
 //  Hypercomplex number class operator member definitions  -------------------//
