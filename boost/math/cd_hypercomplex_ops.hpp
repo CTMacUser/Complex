@@ -95,7 +95,7 @@ auto operator ==( cdh_complex_ar<T, R> const &l, cdh_complex_ar<U, R> const &r )
 
 //! \overload
 template < typename T, std::size_t R, typename U, std::size_t S,
- typename std::enable_if<(R < S)>::type... >
+ typename std::enable_if<(R < S), std::nullptr_t>::type... >
 inline constexpr
 auto operator ==( cdh_complex_ar<T, R> const &l, cdh_complex_ar<U, S> const &r )
  -> decltype( std::declval<T const &>() == std::declval<U const &>() )
@@ -103,7 +103,7 @@ auto operator ==( cdh_complex_ar<T, R> const &l, cdh_complex_ar<U, S> const &r )
 
 //! \overload
 template < typename T, std::size_t R, typename U, std::size_t S,
- typename std::enable_if<(R > S)>::type... >
+ typename std::enable_if<(R > S), std::nullptr_t>::type... >
 inline constexpr
 auto operator ==( cdh_complex_ar<T, R> const &l, cdh_complex_ar<U, S> const &r )
  -> decltype( std::declval<T const &>() == std::declval<U const &>() )
@@ -156,7 +156,7 @@ auto operator !=( cdh_complex_ar<T, R> const &l, cdh_complex_ar<U, R> const &r )
 
 //! \overload
 template < typename T, std::size_t R, typename U, std::size_t S,
- typename std::enable_if<(R < S)>::type... >
+ typename std::enable_if<(R < S), std::nullptr_t>::type... >
 inline constexpr
 auto operator !=( cdh_complex_ar<T, R> const &l, cdh_complex_ar<U, S> const &r )
  -> decltype( std::declval<T const &>() != std::declval<U const &>() )
@@ -164,7 +164,7 @@ auto operator !=( cdh_complex_ar<T, R> const &l, cdh_complex_ar<U, S> const &r )
 
 //! \overload
 template < typename T, std::size_t R, typename U, std::size_t S,
- typename std::enable_if<(R > S)>::type... >
+ typename std::enable_if<(R > S), std::nullptr_t>::type... >
 inline constexpr
 auto operator !=( cdh_complex_ar<T, R> const &l, cdh_complex_ar<U, S> const &r )
  -> decltype( std::declval<T const &>() != std::declval<U const &>() )
