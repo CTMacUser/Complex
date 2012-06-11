@@ -52,7 +52,7 @@ namespace detail
         using std::ios_base;
 
         auto const  L = 1UL << dynamic_rank( x );
-        auto const  ww = ( w < (L + 1u) ) ? 0 : ( w - L - 1u );
+        auto const  ww = ( w - 1 < (decltype( w ))L ) ? 0 : ( w - L - 1 );
         Ch          prefix = o.widen( '(' );
 
         std::for_each( x.begin(), x.begin() + L, [=,&prefix,&o] ( T const &v ) {
