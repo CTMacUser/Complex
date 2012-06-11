@@ -70,6 +70,12 @@
 #ifndef CONTROL_TEST_FAIL_AR_MULTILEVEL_GET
 #define CONTROL_TEST_FAIL_AR_MULTILEVEL_GET  1
 #endif
+#ifndef CONTROL_TEST_FAIL_AI_CONVERSIONS
+#define CONTROL_TEST_FAIL_AI_CONVERSIONS  1
+#endif
+#ifndef CONTROL_TEST_FAIL_AR_CONVERSIONS
+#define CONTROL_TEST_FAIL_AR_CONVERSIONS  1
+#endif
 
 
 // Compact type expressions
@@ -265,6 +271,45 @@ int  main()
     assert( sizeof(get<8>( test25 )) >= sizeof(int) );
     assert( sizeof(get<9>( ctest25 )) >= sizeof(int) );
     assert( sizeof(get<10>( decltype(test25){} )) >= sizeof(int) );
+#endif
+
+    // Complex conversions can only be done if the element types are
+    // convertible.
+#if CONTROL_TEST_FAIL_AI_CONVERSIONS
+    cdh_complex_ai<no_boolean_convert_t<int>, 1>  test26{ {w1, w2} };
+    auto const  test27 =
+     static_cast<cdh_complex_ai<no_implicit_boolean_convert_t<int>, 0>>( test26
+     );
+    auto const  test28 =
+     static_cast<cdh_complex_ai<no_implicit_boolean_convert_t<int>, 1>>( test26
+     );
+    auto const  test29 =
+     static_cast<cdh_complex_ai<no_implicit_boolean_convert_t<int>, 2>>( test26
+     );
+
+    assert( test27.c[0].v == 0 );
+    assert( test28.c[0].v == 0 );
+    assert( test28.c[1].v == -4 );
+    assert( test29.c[0].v == 0 );
+    assert( test29.c[1].v == -4 );
+    assert( test29.c[2].v == 0 );
+    assert( test29.c[3].v == 0 );
+#endif
+
+#if CONTROL_TEST_FAIL_AR_CONVERSIONS
+    auto const  test30 =
+     static_cast<cdh_complex_ar<no_implicit_boolean_convert_t<int>, 0>>(test9);
+    auto const  test31 =
+     static_cast<cdh_complex_ar<no_implicit_boolean_convert_t<int>, 1>>(test9);
+    auto const  test32 =
+     static_cast<cdh_complex_ar<no_implicit_boolean_convert_t<int>, 2>>(test9);
+
+    assert( test30.r[0].v == test7.r[0].v );
+    assert( test31.b[0].r[0].v == test7.r[0].v );
+    assert( test31.b[1].r[0].v == test8.r[0].v );
+    assert( test32.b[0].b[0].r[0].v == test7.r[0].v );
+    assert( test32.b[0].b[1].r[0].v == test8.r[0].v );
+    assert( !test32.b[1] );
 #endif
 
     return 0;

@@ -19,6 +19,7 @@
 #include <ctime>        // for std::time
 #include <ios>          // for std::ios_base
 #include <limits>       // for std::numeric_limits
+#include <ostream>      // for std::basic_ostream
 #include <random>       // for std::default_random_engine, etc.
 #include <tuple>        // for std::tuple_size, tuple_element
 #include <type_traits>  // for std::true_type, false_type, is_same, etc.
@@ -198,6 +199,16 @@ auto  get_random_nonzero_cdh_complex_ar() -> cdh_complex_ar<T, R>
    detail::never0_r( result );
    return result;
 }
+
+// Create a numeric type that doesn't implicitly convert to the built-in ones.
+enum class two_bit_t
+    : unsigned
+{ zero, one, two, three };
+
+template < typename Ch, class Tr >
+std::basic_ostream<Ch, Tr> &
+operator <<( std::basic_ostream<Ch, Tr> &o, two_bit_t x )
+{ return o << static_cast<unsigned>(x); }
 
 }  // anonymous namespace
 
@@ -1021,3 +1032,349 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( iteration_tests, T, numeric_types )
     BOOST_CHECK_EQUAL( get<6>(ctest1), (T)49 );
     BOOST_CHECK_EQUAL( get<7>(ctest1), (T)64 );
 }
+
+BOOST_AUTO_TEST_SUITE( conversion_tests )
+
+BOOST_AUTO_TEST_CASE_TEMPLATE( same_element_type_upsize_conversion_test, T,
+ numeric_types )
+{
+    // Check if a higher-rung conversion zero-fills the extra spots
+    T const                   v = get_random_number<T>();
+    real_ai_t<T> const        test1a{ {v} };
+    complex_ai_t<T> const     test2a = test1a;
+    quaternion_ai_t<T> const  test3a_1 = test1a, test3a_2 = test2a;
+    octonion_ai_t<T> const    test4a_1 = test1a, test4a_2 = test2a,
+     test4a_3 = test3a_1;
+
+    BOOST_CHECK_EQUAL( test2a, complex_ai_t<T>{{ v }} );
+    BOOST_CHECK_EQUAL( test3a_1, quaternion_ai_t<T>{{ v }} );
+    BOOST_CHECK_EQUAL( test3a_2, quaternion_ai_t<T>{{ v }} );
+    BOOST_CHECK_EQUAL( test4a_1, octonion_ai_t<T>{{ v }} );
+    BOOST_CHECK_EQUAL( test4a_2, octonion_ai_t<T>{{ v }} );
+    BOOST_CHECK_EQUAL( test4a_3, octonion_ai_t<T>{{ v }} );
+
+    // Repeat
+    real_ar_t<T> const        test1b{ {v} };
+    complex_ar_t<T> const     test2b = test1b;
+    quaternion_ar_t<T> const  test3b_1 = test1b, test3b_2 = test2b;
+    octonion_ar_t<T> const    test4b_1 = test1b, test4b_2 = test2b,
+     test4b_3 = test3b_2;
+
+    BOOST_CHECK_EQUAL( test2b, complex_ar_t<T>{{ {{ v }} }} );
+    BOOST_CHECK_EQUAL( test3b_1, quaternion_ar_t<T>{{ {{ {{ v }} }} }} );
+    BOOST_CHECK_EQUAL( test3b_2, quaternion_ar_t<T>{{ {{ {{ v }} }} }} );
+    BOOST_CHECK_EQUAL( test4b_1, octonion_ar_t<T>{{ {{ {{ {{ v }} }} }} }} );
+    BOOST_CHECK_EQUAL( test4b_2, octonion_ar_t<T>{{ {{ {{ {{ v }} }} }} }} );
+    BOOST_CHECK_EQUAL( test4b_3, octonion_ar_t<T>{{ {{ {{ {{ v }} }} }} }} );
+}
+
+BOOST_AUTO_TEST_CASE( diff_elements_same_size_conversion_test )
+{
+    using boost::math::get;
+
+    // Check if elements convert
+    real_ai_t<unsigned short> const  test1a{ {6} };
+    real_ai_t<unsigned> const        test2a = test1a;
+    real_ai_t<int> const             test3a = test1a;
+    real_ai_t<long> const            test4a = test1a;
+    real_ai_t<float> const           test5a = test1a;
+    real_ai_t<double> const          test6a = test1a;
+
+    BOOST_CHECK_EQUAL( get<0>(test2a), 6u );
+    BOOST_CHECK_EQUAL( get<0>(test3a), 6 );
+    BOOST_CHECK_EQUAL( get<0>(test4a), 6L );
+    BOOST_CHECK_EQUAL( get<0>(test5a), 6.0f );
+    BOOST_CHECK_EQUAL( get<0>(test6a), 6.0 );
+
+    complex_ai_t<unsigned short> const  test7a{ {2, 5} };
+    complex_ai_t<unsigned> const        test8a = test7a;
+    complex_ai_t<int> const             test9a = test7a;
+    complex_ai_t<long> const            test10a = test7a;
+    complex_ai_t<float> const           test11a = test7a;
+    complex_ai_t<double> const          test12a = test7a;
+
+    BOOST_CHECK_EQUAL( get<0>(test8a), 2u );
+    BOOST_CHECK_EQUAL( get<0>(test9a), 2 );
+    BOOST_CHECK_EQUAL( get<0>(test10a), 2L );
+    BOOST_CHECK_EQUAL( get<0>(test11a), 2.0f );
+    BOOST_CHECK_EQUAL( get<0>(test12a), 2.0 );
+    BOOST_CHECK_EQUAL( get<1>(test8a), 5u );
+    BOOST_CHECK_EQUAL( get<1>(test9a), 5 );
+    BOOST_CHECK_EQUAL( get<1>(test10a), 5L );
+    BOOST_CHECK_EQUAL( get<1>(test11a), 5.0f );
+    BOOST_CHECK_EQUAL( get<1>(test12a), 5.0 );
+
+    // Repeat
+    real_ar_t<unsigned short> const  test1b{ {7} };
+    real_ar_t<unsigned> const        test2b = test1b;
+    real_ar_t<int> const             test3b = test1b;
+    real_ar_t<long> const            test4b = test1b;
+    real_ar_t<float> const           test5b = test1b;
+    real_ar_t<double> const          test6b = test1b;
+
+    BOOST_CHECK_EQUAL( get<0>(test2b), 7u );
+    BOOST_CHECK_EQUAL( get<0>(test3b), 7 );
+    BOOST_CHECK_EQUAL( get<0>(test4b), 7L );
+    BOOST_CHECK_EQUAL( get<0>(test5b), 7.0f );
+    BOOST_CHECK_EQUAL( get<0>(test6b), 7.0 );
+
+    complex_ar_t<unsigned short> const  test7b{ {8, 15} };
+    complex_ar_t<unsigned> const        test8b = test7b;
+    complex_ar_t<int> const             test9b = test7b;
+    complex_ar_t<long> const            test10b = test7b;
+    complex_ar_t<float> const           test11b = test7b;
+    complex_ar_t<double> const          test12b = test7b;
+
+    BOOST_CHECK_EQUAL( get<0>(test8b), 8u );
+    BOOST_CHECK_EQUAL( get<0>(test9b), 8 );
+    BOOST_CHECK_EQUAL( get<0>(test10b), 8L );
+    BOOST_CHECK_EQUAL( get<0>(test11b), 8.0f );
+    BOOST_CHECK_EQUAL( get<0>(test12b), 8.0 );
+    BOOST_CHECK_EQUAL( get<1>(test8b), 15u );
+    BOOST_CHECK_EQUAL( get<1>(test9b), 15 );
+    BOOST_CHECK_EQUAL( get<1>(test10b), 15L );
+    BOOST_CHECK_EQUAL( get<1>(test11b), 15.0f );
+    BOOST_CHECK_EQUAL( get<1>(test12b), 15.0 );
+
+    // Check again, with larger tuples
+    quaternion_ai_t<int> const    test13a{ {-4, 3, 10, -21} };
+    quaternion_ai_t<long> const   test14a = test13a;
+    quaternion_ai_t<float> const  test15a = test13a;
+
+    BOOST_CHECK_EQUAL( get<0>(test14a), -4L );
+    BOOST_CHECK_EQUAL( get<1>(test14a), 3L );
+    BOOST_CHECK_EQUAL( get<2>(test14a), 10L );
+    BOOST_CHECK_EQUAL( get<3>(test14a), -21L );
+    BOOST_CHECK_EQUAL( get<0>(test15a), -4.0f );
+    BOOST_CHECK_EQUAL( get<1>(test15a), 3.0f );
+    BOOST_CHECK_EQUAL( get<2>(test15a), 10.0f );
+    BOOST_CHECK_EQUAL( get<3>(test15a), -21.0f );
+
+    octonion_ar_t<float> const   test16b{{ {{ {{ {{ 30.5f }}, {{ -31.25f }} }},
+     {{ {{ 32.0f }}, {{ -33.75f }} }} }}, {{ {{ {{ 34.625f }}, {{ -35.5f }} }},
+     {{ {{ 36.125f }}, {{ -37.25f }} }} }} }};
+    octonion_ar_t<double> const  test17b = test16b;
+
+    BOOST_CHECK_EQUAL( get<0>(test17b), +30.5 );
+    BOOST_CHECK_EQUAL( get<1>(test17b), -31.25 );
+    BOOST_CHECK_EQUAL( get<2>(test17b), +32.0 );
+    BOOST_CHECK_EQUAL( get<3>(test17b), -33.75 );
+    BOOST_CHECK_EQUAL( get<4>(test17b), +34.625 );
+    BOOST_CHECK_EQUAL( get<5>(test17b), -35.5 );
+    BOOST_CHECK_EQUAL( get<6>(test17b), +36.125 );
+    BOOST_CHECK_EQUAL( get<7>(test17b), -37.25 );
+
+    // Check with possibly-narrowing conversions, which are still implicit
+    // (The ones with "v" prevent constexpr elision of narrowing.)
+    double const             v = get_random_number<double>();
+    real_ai_t<double> const  test18a{ {-6.25} }, test19a{ {v} };
+    real_ai_t<float> const   test20a = test18a, test21a = test19a;
+    real_ar_t<double> const  test18b{ {-6.25} }, test19b{ {v} };
+    real_ar_t<float> const   test20b = test18b, test21b = test19b;
+
+    BOOST_CHECK_EQUAL( get<0>(test20a), -6.25f );
+    BOOST_CHECK_EQUAL( get<0>(test21a), static_cast<float>(v) );
+    BOOST_CHECK_EQUAL( get<0>(test20b), -6.25f );
+    BOOST_CHECK_EQUAL( get<0>(test21b), static_cast<float>(v) );
+}
+
+BOOST_AUTO_TEST_CASE( diff_elements_and_size_conversion_test )
+{
+    using boost::math::get;
+
+    // Check if conversion and zero-fill work, with non-adjacent rungs
+    real_ai_t<long> const        test1a{ {-5L} };
+    octonion_ai_t<double> const  test2a = test1a;
+
+    BOOST_CHECK_EQUAL( get<0>(test2a), -5.0 );
+    BOOST_CHECK_EQUAL( get<1>(test2a),  0.0 );
+    BOOST_CHECK_EQUAL( get<2>(test2a),  0.0 );
+    BOOST_CHECK_EQUAL( get<3>(test2a),  0.0 );
+    BOOST_CHECK_EQUAL( get<4>(test2a),  0.0 );
+    BOOST_CHECK_EQUAL( get<5>(test2a),  0.0 );
+    BOOST_CHECK_EQUAL( get<6>(test2a),  0.0 );
+    BOOST_CHECK_EQUAL( get<7>(test2a),  0.0 );
+
+    // Check with two adjacent non-real rungs
+    complex_ai_t<int> const       test3a{ {8, -9} };
+    quaternion_ai_t<float> const  test4a = test3a;
+
+    BOOST_CHECK_EQUAL( get<0>(test4a), +8.0f );
+    BOOST_CHECK_EQUAL( get<1>(test4a), -9.0f );
+    BOOST_CHECK_EQUAL( get<2>(test4a),  0.0f );
+    BOOST_CHECK_EQUAL( get<3>(test4a),  0.0f );
+
+    // Repeat
+    real_ar_t<float> const       test1b{ {-5.5f} };
+    octonion_ar_t<double> const  test2b = test1b;
+
+    BOOST_CHECK_EQUAL( get<0>(test2b), -5.5 );
+    BOOST_CHECK_EQUAL( get<1>(test2b),  0.0 );
+    BOOST_CHECK_EQUAL( get<2>(test2b),  0.0 );
+    BOOST_CHECK_EQUAL( get<3>(test2b),  0.0 );
+    BOOST_CHECK_EQUAL( get<4>(test2b),  0.0 );
+    BOOST_CHECK_EQUAL( get<5>(test2b),  0.0 );
+    BOOST_CHECK_EQUAL( get<6>(test2b),  0.0 );
+    BOOST_CHECK_EQUAL( get<7>(test2b),  0.0 );
+
+    complex_ar_t<unsigned> const  test3b{ {{ {7u} }, { {12u} }} };
+    quaternion_ar_t<long> const   test4b = test3b;
+
+    BOOST_CHECK_EQUAL( get<0>(test4b), 7L );
+    BOOST_CHECK_EQUAL( get<1>(test4b), 12L );
+    BOOST_CHECK_EQUAL( get<2>(test4b), 0L );
+    BOOST_CHECK_EQUAL( get<3>(test4b), 0L );
+
+    // Check with possibly-narrowing conversions, which are still implicit
+    // (The ones with "v" prevent constexpr elision of narrowing.)
+    double const             v1 = get_random_number<double>(),
+     v2 = get_random_number<double>();
+    real_ai_t<double> const        test5a{ {-7.0} }, test6a{ {v1} };
+    complex_ai_t<float> const      test7a = test5a, test8a = test6a;
+    complex_ar_t<double> const     test5b{ {{ {+3.5} }, { {-6.25} }} },
+     test6b{ {{ {v1} }, { {v2} }} };
+    quaternion_ar_t<float> const   test7b = test5b, test8b = test6b;
+
+    BOOST_CHECK_EQUAL( get<0>(test7a), -7.0f );
+    BOOST_CHECK_EQUAL( get<1>(test7a),  0.0f );
+    BOOST_CHECK_EQUAL( get<0>(test8a), static_cast<float>(v1) );
+    BOOST_CHECK_EQUAL( get<1>(test8a), 0.0f );
+    BOOST_CHECK_EQUAL( get<0>(test7b), +3.50f );
+    BOOST_CHECK_EQUAL( get<1>(test7b), -6.25f );
+    BOOST_CHECK_EQUAL( get<2>(test7b),  0.00f );
+    BOOST_CHECK_EQUAL( get<3>(test7b),  0.00f );
+    BOOST_CHECK_EQUAL( get<0>(test8b), static_cast<float>(v1) );
+    BOOST_CHECK_EQUAL( get<1>(test8b), static_cast<float>(v2) );
+    BOOST_CHECK_EQUAL( get<2>(test8b), 0.0f );
+    BOOST_CHECK_EQUAL( get<3>(test8b), 0.0f );
+}
+
+BOOST_AUTO_TEST_CASE( explicit_conversion_test )
+{
+    using boost::math::get;
+
+    // Use a conversion that needs to be explicit
+    two_bit_t const  v = two_bit_t::two;
+    auto const       test1a = real_ai_t<two_bit_t>{ {v} };
+    auto const       test2a = static_cast<real_ai_t<unsigned>>( test1a );
+     // not "{ test1a }" nor "= test1a"
+
+    BOOST_REQUIRE_EQUAL( static_cast<unsigned>(v), 2u );
+    BOOST_CHECK_EQUAL( get<0>(test2a), 2u );
+
+    // Convert to a smaller tuple
+    quaternion_ai_t<int> const  test3a{ {1, 2, 3, 4} };
+    auto const                  test4a = static_cast<complex_ai_t<int>>(test3a);
+
+    BOOST_CHECK_EQUAL( get<0>(test4a), 1 );
+    BOOST_CHECK_EQUAL( get<1>(test4a), 2 );
+
+    // Convert to smaller tuple with different type
+    complex_ai_t<int> const  test5a{ {-7, -2} };
+    auto const               test6a = static_cast<real_ai_t<double>>( test5a );
+
+    BOOST_CHECK_EQUAL( get<0>(test6a), -7.0 );
+
+    // Same, but with explicit element conversion
+    octonion_ai_t<two_bit_t> const  test7a{ {two_bit_t::three, two_bit_t::two,
+     two_bit_t::one, two_bit_t::zero, two_bit_t::zero, two_bit_t::one,
+     two_bit_t::two, two_bit_t::three} };
+    auto const         test8a = static_cast<complex_ai_t<unsigned>>( test7a );
+
+    BOOST_CHECK_EQUAL( get<0>(test8a), 3u );
+    BOOST_CHECK_EQUAL( get<1>(test8a), 2u );
+
+    // Use explicit element conversion with longer tuple
+    complex_ai_t<two_bit_t> const  test9a{ {two_bit_t::zero, two_bit_t::one} };
+    auto const      test10a = static_cast<quaternion_ai_t<unsigned>>( test9a );
+
+    BOOST_CHECK_EQUAL( get<0>(test10a), 0u );
+    BOOST_CHECK_EQUAL( get<1>(test10a), 1u );
+    BOOST_CHECK_EQUAL( get<2>(test10a), 0u );
+    BOOST_CHECK_EQUAL( get<3>(test10a), 0u );
+
+    // Repeat w/ recursively-defined types; base case
+    auto const  test1b = real_ar_t<two_bit_t>{ {v} };
+    auto const  test2b = static_cast<real_ar_t<unsigned>>( test1b );
+
+    BOOST_CHECK_EQUAL( get<0>(test2b), 2u );
+
+    // Explicit conversion, base case to non-base case
+    auto const  test3b = static_cast<quaternion_ar_t<unsigned>>( test1b );
+
+    BOOST_CHECK_EQUAL( get<0>(test3b), 2u );
+    BOOST_CHECK_EQUAL( get<1>(test3b), 0u );
+    BOOST_CHECK_EQUAL( get<2>(test3b), 0u );
+    BOOST_CHECK_EQUAL( get<3>(test3b), 0u );
+
+    // Explicit conversion, two same-size non-base cases
+    octonion_ar_t<two_bit_t> const  test4b{ {{ {{ {{ {two_bit_t::three} },
+     { {two_bit_t::two} }} }, { {{ {two_bit_t::one} },
+     { {two_bit_t::zero} }} }} }, { {{ {{ {two_bit_t::zero} },
+     { {two_bit_t::one} }} }, { {{ {two_bit_t::two} },
+     { {two_bit_t::three} }} }} }} };
+    auto const    test5b = static_cast<octonion_ar_t<unsigned>>( test4b );
+
+    BOOST_CHECK_EQUAL( get<0>(test5b), 3u );
+    BOOST_CHECK_EQUAL( get<1>(test5b), 2u );
+    BOOST_CHECK_EQUAL( get<2>(test5b), 1u );
+    BOOST_CHECK_EQUAL( get<3>(test5b), 0u );
+    BOOST_CHECK_EQUAL( get<4>(test5b), 0u );
+    BOOST_CHECK_EQUAL( get<5>(test5b), 1u );
+    BOOST_CHECK_EQUAL( get<6>(test5b), 2u );
+    BOOST_CHECK_EQUAL( get<7>(test5b), 3u );
+
+    // Explicit conversion, non-base case to larger one
+    auto const  test6b = static_cast<octonion_ar_t<unsigned>>( test4b.b[1] );
+
+    BOOST_CHECK_EQUAL( get<0>(test6b), 0u );
+    BOOST_CHECK_EQUAL( get<1>(test6b), 1u );
+    BOOST_CHECK_EQUAL( get<2>(test6b), 2u );
+    BOOST_CHECK_EQUAL( get<3>(test6b), 3u );
+    BOOST_CHECK_EQUAL( get<4>(test6b), 0u );
+    BOOST_CHECK_EQUAL( get<5>(test6b), 0u );
+    BOOST_CHECK_EQUAL( get<6>(test6b), 0u );
+    BOOST_CHECK_EQUAL( get<7>(test6b), 0u );
+
+    // Conversion, same element type but smaller sizes
+    auto const  test7b = static_cast<quaternion_ar_t<unsigned>>( test6b );
+    auto const  test8b = static_cast<complex_ar_t<unsigned>>( test6b );
+    auto const  test9b = static_cast<real_ar_t<unsigned>>( test6b );
+
+    BOOST_CHECK_EQUAL( get<0>(test7b), 0u );
+    BOOST_CHECK_EQUAL( get<1>(test7b), 1u );
+    BOOST_CHECK_EQUAL( get<2>(test7b), 2u );
+    BOOST_CHECK_EQUAL( get<3>(test7b), 3u );
+
+    BOOST_CHECK_EQUAL( get<0>(test8b), 0u );
+    BOOST_CHECK_EQUAL( get<1>(test8b), 1u );
+    BOOST_CHECK_EQUAL( get<0>(test9b), 0u );
+
+    // Conversion, implicitly-convertible element type but smaller sizes
+    auto const  test10b = static_cast<quaternion_ar_t<int>>( test6b );
+    auto const  test11b = static_cast<complex_ar_t<int>>( test6b );
+    auto const  test12b = static_cast<real_ar_t<int>>( test6b );
+
+    BOOST_CHECK_EQUAL( get<0>(test10b), 0 );
+    BOOST_CHECK_EQUAL( get<1>(test10b), 1 );
+    BOOST_CHECK_EQUAL( get<2>(test10b), 2 );
+    BOOST_CHECK_EQUAL( get<3>(test10b), 3 );
+    BOOST_CHECK_EQUAL( get<0>(test11b), 0 );
+    BOOST_CHECK_EQUAL( get<1>(test11b), 1 );
+    BOOST_CHECK_EQUAL( get<0>(test12b), 0 );
+
+    // Explicit conversion, to smaller sizes
+    auto const  test13b = static_cast<quaternion_ar_t<unsigned>>( test4b );
+    auto const  test14b = static_cast<complex_ar_t<unsigned>>( test4b );
+    auto const  test15b = static_cast<real_ar_t<unsigned>>( test4b );
+
+    BOOST_CHECK_EQUAL( get<0>(test13b), 3u );
+    BOOST_CHECK_EQUAL( get<1>(test13b), 2u );
+    BOOST_CHECK_EQUAL( get<2>(test13b), 1u );
+    BOOST_CHECK_EQUAL( get<3>(test13b), 0u );
+    BOOST_CHECK_EQUAL( get<0>(test14b), 3u );
+    BOOST_CHECK_EQUAL( get<1>(test14b), 2u );
+    BOOST_CHECK_EQUAL( get<0>(test15b), 3u );
+}
+
+BOOST_AUTO_TEST_SUITE_END()  // conversion_tests

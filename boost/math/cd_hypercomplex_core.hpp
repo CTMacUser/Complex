@@ -27,6 +27,8 @@
 #ifndef BOOST_MATH_CD_HYPERCOMPLEX_CORE_HPP
 #define BOOST_MATH_CD_HYPERCOMPLEX_CORE_HPP
 
+#include "boost/detail/index_tuple11.hpp"
+
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
@@ -168,6 +170,36 @@ struct cdh_complex_ai
     //! Boolean conversion.
     explicit operator bool() const
      noexcept( std::is_nothrow_constructible<bool, value_type const &>::value );
+
+    //! Cross-conversion: same-or-greater size, implicitly convertible types.
+    template <
+        typename U, std::size_t S,
+        typename std::enable_if<
+            std::is_convertible<CommutativeRing, U>::value && (S >= Rank)
+        >::type*...
+    >
+    constexpr
+    operator cdh_complex_ai<U, S>() const
+     noexcept(
+         std::is_nothrow_constructible<U, value_type const &>::value
+         && (( S == rank ) || std::is_nothrow_default_constructible<U>::value)
+         && std::is_nothrow_move_constructible<U>::value
+     );
+    //! Cross-conversion: lesser size and/or explicitly convertible types.
+    template <
+        typename U, std::size_t S,
+        typename std::enable_if<
+            !( std::is_convertible<CommutativeRing, U>::value && (S >= Rank) ),
+            decltype(static_cast<U>( std::declval<CommutativeRing const &>() ))
+        >::type*...
+    >
+    explicit constexpr
+    operator cdh_complex_ai<U, S>() const
+     noexcept(
+         noexcept( static_cast<U>(std::declval<value_type const &>()) )
+         && (( S <= rank ) || std::is_nothrow_default_constructible<U>::value)
+         && std::is_nothrow_move_constructible<U>::value
+     );
 };
 
 /** This partial specialization is the base case for the recursively-storing
@@ -241,6 +273,61 @@ struct cdh_complex_ar<CommutativeRing, 0>
     constexpr explicit
     operator bool() const
      noexcept( std::is_nothrow_constructible<bool, value_type const &>::value );
+
+    //! Cross-conversion: same size, implicitly convertible types.
+    template <
+        typename U,
+        typename std::enable_if<std::is_convertible<CommutativeRing, U>::value
+        >::type*...
+    >
+    constexpr
+    operator cdh_complex_ar<U, 0>() const
+     noexcept(
+         std::is_nothrow_constructible<U, value_type const &>::value
+         && std::is_nothrow_move_constructible<U>::value
+     );
+    //! Cross-conversion: same size, explicitly convertible types.
+    template <
+        typename U,
+        typename std::enable_if<
+            not std::is_convertible<CommutativeRing, U>::value,
+            decltype(static_cast<U>( std::declval<CommutativeRing const &>() ))
+        >::type*...
+    >
+    explicit constexpr
+    operator cdh_complex_ar<U, 0>() const
+     noexcept(
+         noexcept( static_cast<U>(std::declval<value_type const &>()) )
+         && std::is_nothrow_move_constructible<U>::value
+     );
+    //! Cross-conversion: greater size, same or implicitly convertible types.
+    template <
+        typename U, std::size_t S,
+        typename std::enable_if<std::is_convertible<CommutativeRing, U>::value
+         && S>::type*...
+    >
+    constexpr
+    operator cdh_complex_ar<U, S>() const
+     noexcept(
+         std::is_nothrow_constructible<U, value_type const &>::value
+         && std::is_nothrow_default_constructible<U>::value
+         && std::is_nothrow_move_constructible<U>::value
+     );
+    //! Cross-conversion: greater size, explicitly convertible types.
+    template <
+        typename U, std::size_t S,
+        typename std::enable_if<
+            !std::is_convertible<CommutativeRing, U>::value && S,
+            decltype(static_cast<U>( std::declval<CommutativeRing const &>() ))
+        >::type*...
+    >
+    explicit constexpr
+    operator cdh_complex_ar<U, S>() const
+     noexcept(
+         noexcept( static_cast<U>(std::declval<value_type const &>()) )
+         && std::is_nothrow_default_constructible<U>::value
+         && std::is_nothrow_move_constructible<U>::value
+     );
 };
 
 /** This model of C.D. hypercomplex numbers stores its components indirectly;
@@ -307,6 +394,99 @@ struct cdh_complex_ar
     constexpr explicit
     operator bool() const
      noexcept( std::is_nothrow_constructible<bool, value_type const &>::value );
+
+    //! Cross-conversion: same size, implicitly convertible types.
+    template <
+        typename U,
+        typename std::enable_if<std::is_convertible<CommutativeRing, U>::value
+        >::type*...
+    >
+    constexpr
+    operator cdh_complex_ar<U, rank>() const
+     noexcept(
+         std::is_nothrow_constructible<U, value_type const &>::value
+         && std::is_nothrow_move_constructible<U>::value
+     );
+    //! Cross-conversion: same size, explicitly convertible types.
+    template <
+        typename U,
+        typename std::enable_if<
+            not std::is_convertible<CommutativeRing, U>::value,
+            decltype( static_cast<U>(std::declval<CommutativeRing const &>()) )
+        >::type*...
+    >
+    explicit constexpr
+    operator cdh_complex_ar<U, rank>() const
+     noexcept(
+         noexcept( static_cast<U>(std::declval<value_type const &>()) )
+         && std::is_nothrow_move_constructible<U>::value
+     );
+    //! Cross-conversion: greater size, same or implicitly convertible types.
+    template <
+        typename U, std::size_t S,
+        typename std::enable_if<std::is_convertible<CommutativeRing, U>::value
+         && (S > Rank)>::type*...
+    >
+    constexpr
+    operator cdh_complex_ar<U, S>() const
+     noexcept(
+         std::is_nothrow_constructible<U, value_type const &>::value
+         && std::is_nothrow_default_constructible<U>::value
+         && std::is_nothrow_move_constructible<U>::value
+     );
+    //! Cross-conversion: greater size, explicitly convertible types.
+    template <
+        typename U, std::size_t S,
+        typename std::enable_if<
+            !std::is_convertible<CommutativeRing, U>::value && (S > Rank),
+            decltype( static_cast<U>(std::declval<CommutativeRing const &>()) )
+        >::type*...
+    >
+    explicit constexpr
+    operator cdh_complex_ar<U, S>() const
+     noexcept(
+         noexcept( static_cast<U>(std::declval<value_type const &>()) )
+         && std::is_nothrow_default_constructible<U>::value
+         && std::is_nothrow_move_constructible<U>::value
+     );
+    //! Cross-conversion: immediately-smaller size, same type.
+    explicit constexpr
+    operator cdh_complex_ar<value_type, rank - 1u>() const
+     noexcept( std::is_nothrow_move_constructible<value_type>::value );
+    //! Cross-conversion: smaller sizes, same type.
+    template <std::size_t S, typename std::enable_if<(S < Rank - 1u)>::type*...>
+    explicit constexpr
+    operator cdh_complex_ar<value_type, S>() const
+     noexcept( std::is_nothrow_move_constructible<value_type>::value );
+    //! Cross-conversion: lesser size, implicitly convertible types.
+    template <
+        typename U, std::size_t S,
+        typename std::enable_if<
+            not std::is_same<CommutativeRing, U>::value
+            && std::is_convertible<CommutativeRing, U>::value
+            && (S < Rank)
+        >::type*...
+    >
+    explicit constexpr
+    operator cdh_complex_ar<U, S>() const
+     noexcept(
+         std::is_nothrow_constructible<U, value_type const &>::value
+         && std::is_nothrow_move_constructible<U>::value
+     );
+    //! Cross-conversion: lesser size, explicitly convertible types.
+    template <
+        typename U, std::size_t S,
+        typename std::enable_if<
+            !std::is_convertible<CommutativeRing, U>::value && (S < Rank),
+            decltype( static_cast<U>(std::declval<CommutativeRing const &>()) )
+        >::type*...
+    >
+    explicit constexpr
+    operator cdh_complex_ar<U, S>() const
+     noexcept(
+         noexcept( static_cast<U>(std::declval<value_type const &>()) )
+         && std::is_nothrow_move_constructible<U>::value
+     );
 };
 
 
@@ -759,6 +939,509 @@ template < std::size_t I, typename T, std::size_t R >
 inline constexpr
 auto  get( cdh_complex_ar<T, R> &&x ) noexcept -> T &&
 { return static_cast<T &&>(get<I>( x )); }
+
+
+//  Implementation details  --------------------------------------------------//
+
+//! \cond
+namespace detail
+{
+    // Create a `cdh_complex_ai` object from an initializer.
+    template < typename T, std::size_t R, class Source, std::size_t ...Indices >
+    inline constexpr
+    auto  implicitly_convert_to_ai( Source const &x,
+     boost::detail::index_tuple<Indices...> )
+     noexcept(
+         std::is_nothrow_constructible<
+             T,
+             typename Source::value_type const &
+         >::value
+         && ( (sizeof...( Indices ) == ( 1UL << R ))
+             || std::is_nothrow_default_constructible<T>::value
+         )
+         && std::is_nothrow_move_constructible<T>::value
+     )
+     -> boost::math::cdh_complex_ai<T, R>
+    { return {{ boost::math::get<Indices>(x)... }}; }
+
+    // Create a `cdh_complex_ai` object from an initializer, but using
+    // explicit conversion.
+    template < typename T, std::size_t R, class Source, std::size_t ...Indices >
+    inline constexpr
+    auto  explicitly_convert_to_ai( Source const &x,
+     boost::detail::index_tuple<Indices...> )
+     noexcept(
+         noexcept(
+             static_cast<T>(std::declval<typename Source::value_type const &>())
+         )
+         && ( (sizeof...( Indices ) >= ( 1UL << R ))
+             || std::is_nothrow_default_constructible<T>::value
+         )
+         && std::is_nothrow_move_constructible<T>::value
+     )
+     -> boost::math::cdh_complex_ai<T, R>
+    { return {{ static_cast<T>(boost::math::get<Indices>( x ))... }}; }
+
+}  // namespace detail
+//! \endcond
+
+
+//  Hypercomplex number class, more operator member definitions  -------------//
+
+/** Convert this object to an object of another instantiation of this class
+    template.  This particular member function handles the cases of implicit
+    conversion can be mechanically and logically done:  when the destination
+    type has at least as many components as the source type, and the source
+    component type can be implicitly converted to the destination component
+    type.
+
+    \pre  `U` can be implicitly converted to `#value_type`.
+    \pre  `S` \>= `#rank`.
+
+    \tparam U  The component type of the returned value.
+    \tparam S  The rank (i.e. Cayley-Dickson rung) of the returned value.
+
+    \throws  Whatever conversions from `value_type` to `U` may throw, plus any
+             exceptions from returning `U` objects and/or creating default
+             value-initialized `U` objects.
+
+    \returns  An object `x` such that `get\<I\>(\*this) == get\<I\>(x)` for all
+              `I` values the source and destination have in common.  If the
+              destination value has more components, then all those later
+              components have values of zero.
+ */
+template < typename CommutativeRing, std::size_t Rank >
+template <
+    typename U, std::size_t S,
+    typename std::enable_if<
+        std::is_convertible<CommutativeRing, U>::value && (S >= Rank)
+    >::type*...
+>
+inline constexpr
+cdh_complex_ai<CommutativeRing, Rank>::operator cdh_complex_ai<U, S>() const
+ noexcept(
+     std::is_nothrow_constructible<U, value_type const &>::value
+     && (( S == rank ) || std::is_nothrow_default_constructible<U>::value)
+     && std::is_nothrow_move_constructible<U>::value
+ )
+{
+    return detail::implicitly_convert_to_ai<U, S>( *this,
+     boost::detail::make_indices<dimensions>() );
+}
+
+/** Convert this object to an object of another instantiation of this class
+    template.  This particular member function handles any destination type
+    that is convertible from the source type, even if by explicit conversion,
+    and can handle any difference in component length.  (This function blocks
+    use by destination types that are covered by the implicit-conversion
+    operator.)  The conversions done by this function are marked explicit.  If
+    the destination type uses fewer components than the source, then only the
+    ones with a lower index are kept. 
+
+    \pre  `U` can be explicitly converted to `#value_type`.
+
+    \tparam U  The component type of the returned value.
+    \tparam S  The rank (i.e. Cayley-Dickson rung) of the returned value.
+
+    \throws  Whatever conversions from `value_type` to `U` may throw, plus any
+             exceptions from returning `U` objects and/or creating default
+             value-initialized `U` objects.
+
+    \returns  An object `x` such that `get\<I\>(\*this) == get\<I\>(x)` for all
+              `I` values the source and destination have in common.  If the
+              destination value has more components, then all those later
+              components have values of zero.
+ */
+template < typename CommutativeRing, std::size_t Rank >
+template <
+    typename U, std::size_t S,
+    typename std::enable_if<
+        !( std::is_convertible<CommutativeRing, U>::value && (S >= Rank) ),
+        decltype(static_cast<U>( std::declval<CommutativeRing const &>() ))
+    >::type*...
+>
+inline constexpr
+cdh_complex_ai<CommutativeRing, Rank>::operator cdh_complex_ai<U, S>() const
+ noexcept(
+     noexcept( static_cast<U>(std::declval<value_type const &>()) )
+     && (( S <= rank ) || std::is_nothrow_default_constructible<U>::value)
+     && std::is_nothrow_move_constructible<U>::value
+ )
+{
+    return detail::explicitly_convert_to_ai<U, S>( *this,
+     boost::detail::make_indices<(S < Rank) ? (1UL << S) : dimensions>() );
+}
+
+/** Convert this object to an object of another instantiation of this class
+    template, where both the source and destination types support exactly one
+    component.  This particular member function works as an implicit conversion,
+    and therefore requires the source type to be able to implicitly convert to
+    the destination type.
+
+    \pre  `U` can be implicitly converted to `#value_type`.
+
+    \tparam U  The component type of the returned value.
+
+    \throws  Whatever conversions from `value_type` to `U` may throw, plus any
+             exceptions from returning `U` objects.
+
+    \returns  An object `x` such that `get\<0\>(\*this) == get\<0\>(x)`.
+ */
+template < typename CommutativeRing >
+template <
+    typename U,
+    typename std::enable_if<std::is_convertible<CommutativeRing, U>::value
+    >::type*...
+>
+inline constexpr
+cdh_complex_ar<CommutativeRing, 0>::operator cdh_complex_ar<U, 0>() const
+ noexcept(
+     std::is_nothrow_constructible<U, value_type const &>::value
+     && std::is_nothrow_move_constructible<U>::value
+ )
+{ return {{ r[0] }}; }
+
+/** Convert this object to an object of another instantiation of this class
+    template, where both the source and destination types support exactly one
+    component.  This particular member function works as an explicit conversion,
+    and therefore requires the source type to be able to explicitly convert to
+    the destination type.
+
+    \pre  `U` can be explicitly converted to `#value_type`.
+
+    \tparam U  The component type of the returned value.
+
+    \throws  Whatever conversions from `value_type` to `U` may throw, plus any
+             exceptions from returning `U` objects.
+
+    \returns  An object `x` such that `get\<0\>(\*this) == get\<0\>(x)`.
+ */
+template < typename CommutativeRing >
+template <
+    typename U,
+    typename std::enable_if<
+        not std::is_convertible<CommutativeRing, U>::value,
+        decltype(static_cast<U>( std::declval<CommutativeRing const &>() ))
+    >::type*...
+>
+inline constexpr
+cdh_complex_ar<CommutativeRing, 0>::operator cdh_complex_ar<U, 0>() const
+ noexcept(
+     noexcept( static_cast<U>(std::declval<value_type const &>()) )
+     && std::is_nothrow_move_constructible<U>::value
+ )
+{ return {{ static_cast<U>(r[ 0 ]) }}; }
+
+/** Convert this object to an object of another instantiation of this class
+    template, where the source type supports a single component and the
+    destination type supports mutliple components.  This particular member
+    function works as an implicit conversion, and therefore requires the source
+    type to be able to implicitly convert to the destination type.
+
+    \pre  `U` can be implicitly converted to `#value_type`.
+    \pre  `S` \>= `#rank`.
+
+    \tparam U  The component type of the returned value.
+    \tparam S  The rank (i.e. Cayley-Dickson rung) of the returned value.
+
+    \throws  Whatever conversions from `value_type` to `U` may throw, plus any
+             exceptions from returning `U` objects and/or creating default
+             value-initialized `U` objects.
+
+    \returns  An object `x` such that `get\<0\>(\*this) == get\<0\>(x)`  and
+              later components of the destination have values of zero.
+ */
+template < typename CommutativeRing >
+template <
+    typename U, std::size_t S,
+    typename std::enable_if<std::is_convertible<CommutativeRing, U>::value &&
+     S>::type*...
+>
+inline constexpr
+cdh_complex_ar<CommutativeRing, 0>::operator cdh_complex_ar<U, S>() const
+ noexcept(
+     std::is_nothrow_constructible<U, value_type const &>::value
+     && std::is_nothrow_default_constructible<U>::value
+     && std::is_nothrow_move_constructible<U>::value
+ )
+{ return {{ *this, {} }}; }
+
+/** Convert this object to an object of another instantiation of this class
+    template, where the source type supports a single component and the
+    destination type supports mutliple components.  This particular member
+    function works as an explicit conversion, and therefore requires the source
+    type to be able to explicitly convert to the destination type.
+
+    \pre  `U` can be explicitly converted to `#value_type`.
+    \pre  `S` \>= `#rank`.
+
+    \tparam U  The component type of the returned value.
+    \tparam S  The rank (i.e. Cayley-Dickson rung) of the returned value.
+
+    \throws  Whatever conversions from `value_type` to `U` may throw, plus any
+             exceptions from returning `U` objects and/or creating default
+             value-initialized `U` objects.
+
+    \returns  An object `x` such that `get\<0\>(\*this) == get\<0\>(x)` and
+              later components of the destination have values of zero.
+ */
+template < typename CommutativeRing >
+template <
+    typename U, std::size_t S,
+    typename std::enable_if<
+        !std::is_convertible<CommutativeRing, U>::value && S,
+        decltype(static_cast<U>( std::declval<CommutativeRing const &>() ))
+    >::type*...
+>
+inline constexpr
+cdh_complex_ar<CommutativeRing, 0>::operator cdh_complex_ar<U, S>() const
+ noexcept(
+     noexcept( static_cast<U>(std::declval<value_type const &>()) )
+     && std::is_nothrow_default_constructible<U>::value
+     && std::is_nothrow_move_constructible<U>::value
+ )
+{ return {{ this->operator cdh_complex_ar<U, S - 1u>(), {} }}; }
+
+/** Convert this object to an object of another instantiation of this class
+    template, where both the source and destination types support the same
+    number of components.  This particular member function works as an implicit
+    conversion, and therefore requires the source type to be able to implicitly
+    convert to the destination type.
+
+    \pre  `U` can be implicitly converted to `#value_type`.
+
+    \tparam U  The component type of the returned value.
+
+    \throws  Whatever conversions from `value_type` to `U` may throw, plus any
+             exceptions from returning `U` objects.
+
+    \returns  An object `x` such that `get\<I\>(\*this) == get\<I\>(x)` for all
+              valid `I` values.
+ */
+template < typename CommutativeRing, std::size_t Rank >
+template <
+    typename U,
+    typename std::enable_if<std::is_convertible<CommutativeRing, U>::value
+    >::type*...
+>
+inline constexpr
+cdh_complex_ar<CommutativeRing, Rank>::operator cdh_complex_ar<U, rank>() const
+ noexcept(
+     std::is_nothrow_constructible<U, value_type const &>::value
+     && std::is_nothrow_move_constructible<U>::value
+ )
+{ return {{ b[0], b[1] }}; }
+
+/** Convert this object to an object of another instantiation of this class
+    template, where both the source and destination types support the same
+    number of components.  This particular member function works as an explicit
+    conversion, and therefore requires the source type to be able to explicitly
+    convert to the destination type.
+
+    \pre  `U` can be explicitly converted to `#value_type`.
+
+    \tparam U  The component type of the returned value.
+
+    \throws  Whatever conversions from `value_type` to `U` may throw, plus any
+             exceptions from returning `U` objects.
+
+    \returns  An object `x` such that `get\<I\>(\*this) == get\<I\>(x)` for all
+              valid `I` values.
+ */
+template < typename CommutativeRing, std::size_t Rank >
+template <
+    typename U,
+    typename std::enable_if<
+        not std::is_convertible<CommutativeRing, U>::value,
+        decltype( static_cast<U>(std::declval<CommutativeRing const &>()) )
+    >::type*...
+>
+inline constexpr
+cdh_complex_ar<CommutativeRing, Rank>::operator cdh_complex_ar<U, rank>() const
+ noexcept(
+     noexcept( static_cast<U>(std::declval<value_type const &>()) )
+     && std::is_nothrow_move_constructible<U>::value
+ )
+{
+    return { {b[0].operator cdh_complex_ar<U, rank - 1u>(),
+     b[1].operator cdh_complex_ar<U, rank - 1u>()} };
+}
+
+/** Convert this object to an object of another instantiation of this class
+    template, where the source type supports fewer (but still multiple)
+    components than the destination type.  This particular member function works
+    as an implicit conversion, and therefore requires the source type to be able
+    to implicitly convert to the destination type.
+
+    \pre  `U` can be implicitly converted to `#value_type`.
+    \pre  `S` \>= `#rank`.
+
+    \tparam U  The component type of the returned value.
+    \tparam S  The rank (i.e. Cayley-Dickson rung) of the returned value.
+
+    \throws  Whatever conversions from `value_type` to `U` may throw, plus any
+             exceptions from returning `U` objects and/or creating default
+             value-initialized `U` objects.
+
+    \returns  An object `x` such that `get\<I\>(\*this) == get\<I\>(x)` for all
+              `I` values the source and destination have in common.  Later
+              components of the destination have values of zero.
+ */
+template < typename CommutativeRing, std::size_t Rank >
+template <
+    typename U, std::size_t S,
+    typename std::enable_if<std::is_convertible<CommutativeRing, U>::value &&
+     (S > Rank)>::type*...
+>
+inline constexpr
+cdh_complex_ar<CommutativeRing, Rank>::operator cdh_complex_ar<U, S>() const
+ noexcept(
+     std::is_nothrow_constructible<U, value_type const &>::value
+     && std::is_nothrow_default_constructible<U>::value
+     && std::is_nothrow_move_constructible<U>::value
+ )
+{ return {{ *this, {} }}; }
+
+/** Convert this object to an object of another instantiation of this class
+    template, where the source type supports fewer (but still multiple)
+    components than the destination type.  This particular member function works
+    as an explicit conversion, and therefore requires the source type to be able
+    to explicitly convert to the destination type.
+
+    \pre  `U` can be explicitly converted to `#value_type`.
+    \pre  `S` \>= `#rank`.
+
+    \tparam U  The component type of the returned value.
+    \tparam S  The rank (i.e. Cayley-Dickson rung) of the returned value.
+
+    \throws  Whatever conversions from `value_type` to `U` may throw, plus any
+             exceptions from returning `U` objects and/or creating default
+             value-initialized `U` objects.
+
+    \returns  An object `x` such that `get\<I\>(\*this) == get\<I\>(x)` for all
+              `I` values the source and destination have in common.  Later
+              components of the destination have values of zero.
+ */
+template < typename CommutativeRing, std::size_t Rank >
+template <
+    typename U, std::size_t S,
+    typename std::enable_if<
+        !std::is_convertible<CommutativeRing, U>::value && (S > Rank),
+        decltype( static_cast<U>(std::declval<CommutativeRing const &>()) )
+    >::type*...
+>
+inline constexpr
+cdh_complex_ar<CommutativeRing, Rank>::operator cdh_complex_ar<U, S>() const
+ noexcept(
+     noexcept( static_cast<U>(std::declval<value_type const &>()) )
+     && std::is_nothrow_default_constructible<U>::value
+     && std::is_nothrow_move_constructible<U>::value
+ )
+{ return {{ this->operator cdh_complex_ar<U, S - 1u>(), {} }}; }
+
+/** Convert this object to an object of another instantiation of this class
+    template, with the source and destination using the same component type, but
+    the destination is one rung lower in Cayley-Dickson construction.  Although
+    same-type (the component type) conversion is implicit, this member function
+    is marked explicit since there is a loss of information.  Only components of
+    the lower half of valid indices are kept.
+
+    \throws  Any exceptions from returning `#value_type` objects.
+
+    \returns  The lower-barrage of `\*this`.
+ */
+template < typename CommutativeRing, std::size_t Rank >
+inline constexpr
+cdh_complex_ar<CommutativeRing, Rank>::operator cdh_complex_ar<value_type,
+ rank - 1u>()
+ const noexcept( std::is_nothrow_move_constructible<value_type>::value )
+{ return b[0]; }
+
+/** Convert this object to an object of another instantiation of this class
+    template, with the source and destination using the same component type, but
+    the destination is multiple rungs lower in Cayley-Dickson construction.
+    Although same-type (the component type) conversion is implicit, this member
+    function is marked explicit since there is a loss of information.  Only
+    components of the lowest section of valid indices are kept.
+
+    \throws  Any exceptions from returning `#value_type` objects.
+
+    \returns  The lowest section of the lower-barrage of `\*this`.
+ */
+template < typename CommutativeRing, std::size_t Rank >
+template < std::size_t S, typename std::enable_if<(S < Rank - 1u)>::type*... >
+inline constexpr
+cdh_complex_ar<CommutativeRing, Rank>::operator cdh_complex_ar<value_type, S>()
+ const noexcept( std::is_nothrow_move_constructible<value_type>::value )
+{ return b[0].operator cdh_complex_ar<value_type, S>(); }
+
+/** Convert this object to an object of another instantiation of this class
+    template, where the source type supports more components than the
+    destination type.  Although the source type has to be able to implicitly
+    convert to the destination type, this member function is marked explicit due
+    to the loss of information.
+
+    \pre  `U` can be implicitly converted to `#value_type`.
+    \pre  `S` \>= `#rank`.
+
+    \tparam U  The component type of the returned value.
+    \tparam S  The rank (i.e. Cayley-Dickson rung) of the returned value.
+
+    \throws  Whatever conversions from `value_type` to `U` may throw, plus any
+             exceptions from returning `U` objects.
+
+    \returns  An object `x` such that `get\<I\>(\*this) == get\<I\>(x)` for all
+              `I` values the source and destination have in common.
+ */
+template < typename CommutativeRing, std::size_t Rank >
+template <
+    typename U, std::size_t S,
+    typename std::enable_if<
+        not std::is_same<CommutativeRing, U>::value &&
+        std::is_convertible<CommutativeRing, U>::value && (S < Rank)
+    >::type*...
+>
+inline constexpr
+cdh_complex_ar<CommutativeRing, Rank>::operator cdh_complex_ar<U, S>() const
+ noexcept(
+     std::is_nothrow_constructible<U, value_type const &>::value
+     && std::is_nothrow_move_constructible<U>::value
+ )
+{ return b[0].operator cdh_complex_ar<U, S>(); }
+
+/** Convert this object to an object of another instantiation of this class
+    template, where the source type supports more components than the
+    destination type.  This particular member function works as an explicit
+    conversion, and therefore requires the source type to be able to explicitly
+    convert to the destination type.
+
+    \pre  `U` can be explicitly converted to `#value_type`.
+    \pre  `S` \>= `#rank`.
+
+    \tparam U  The component type of the returned value.
+    \tparam S  The rank (i.e. Cayley-Dickson rung) of the returned value.
+
+    \throws  Whatever conversions from `value_type` to `U` may throw, plus any
+             exceptions from returning `U` objects.
+
+    \returns  An object `x` such that `get\<I\>(\*this) == get\<I\>(x)` for all
+              `I` values the source and destination have in common.
+ */
+template < typename CommutativeRing, std::size_t Rank >
+template <
+    typename U, std::size_t S,
+    typename std::enable_if<
+        !std::is_convertible<CommutativeRing, U>::value && (S < Rank),
+        decltype( static_cast<U>(std::declval<CommutativeRing const &>()) )
+    >::type*...
+>
+inline constexpr
+cdh_complex_ar<CommutativeRing, Rank>::operator cdh_complex_ar<U, S>() const
+ noexcept(
+     noexcept( static_cast<U>(std::declval<value_type const &>()) )
+     && std::is_nothrow_move_constructible<U>::value
+ )
+{ return b[0].operator cdh_complex_ar<U, S>(); }
 
 
 }  // namespace math
