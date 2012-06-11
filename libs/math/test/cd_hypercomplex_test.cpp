@@ -1118,7 +1118,7 @@ BOOST_AUTO_TEST_CASE( diff_elements_same_size_conversion_test )
     BOOST_CHECK_EQUAL( get<0>(test5b), 7.0f );
     BOOST_CHECK_EQUAL( get<0>(test6b), 7.0 );
 
-    complex_ar_t<unsigned short> const  test7b{ {8, 15} };
+    complex_ar_t<unsigned short> const  test7b{ {{ {8} }, { {15} }} };
     complex_ar_t<unsigned> const        test8b = test7b;
     complex_ar_t<int> const             test9b = test7b;
     complex_ar_t<long> const            test10b = test7b;
