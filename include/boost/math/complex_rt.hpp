@@ -107,6 +107,29 @@ struct complex_rt< Number, 0u >
     //! \copydoc  #boost::math::complex_it::operator bool()const
     explicit constexpr  operator bool() const  { return static_cast<bool>(r); }
 
+    // Constructors
+    /** \brief  Default-construction
+
+    The compiler-generated definition is used to keep `complex_rt` trivial (when
+    #value_type is trivial).
+
+        \post  When used for value-initialization, `(*this)[0] == value_type{}`.
+        \post  When used for default-initialization, the component is left
+               uninitialized if #value_type uses trivial default-construction,
+               otherwise it acts the same as value-initialization.
+     */
+    complex_rt() = default;
+    /** \brief  Single-real constructor
+
+    Constucts a `complex_rt` object from a single real number.  Can act as a
+    conversion.
+
+        \param[in] r  The real number to convert.
+
+        \post  `(*this)[0] == r`.
+     */
+    constexpr  complex_rt( value_type const &r )  : r{ r }  {}
+
 private:
     // Member data
     value_type  r;
@@ -170,6 +193,34 @@ struct complex_rt
     // Conditions
     //! \copydoc  #boost::math::complex_it::operator bool()const
     explicit constexpr  operator bool() const  { return b[0] || b[1]; }
+
+    // Constructors
+    /** \brief  Default-construction
+
+    The compiler-generated definition is used to keep `complex_rt` trivial (when
+    #value_type is trivial).
+
+        \post  When used for value-initialization, `(*this)[i] == value_type{}`
+               for every valid `i`.  (And `this->lower_barrage()` and
+               `this->upper_barrage()` both equal `barrage_type{}`.)
+        \post  When used for default-initialization, each component (and
+               barrage) is left uninitialized if #value_type uses trivial
+               default-construction, otherwise it acts the same as
+               value-initialization.
+     */
+    complex_rt() = default;
+    /** \brief  Single-real constructor
+
+    Constucts a `complex_rt` object from a single real number.  Can act as a
+    conversion.
+
+        \param[in] r  The real number to convert.
+
+        \post  `(*this)[0] == r` while `(*this)[i] == value_type{}` for any
+               valid `i` that's not zero.  (And `this->lower_barrage() == r`
+               while `this->upper_barrage() == barrage_type{}`.)
+     */
+    constexpr  complex_rt( value_type const &r )  : b{ {r} }  {}
 
 private:
     // Member data

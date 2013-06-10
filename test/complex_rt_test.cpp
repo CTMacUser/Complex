@@ -188,20 +188,17 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_complex_component_access2, T,
 BOOST_AUTO_TEST_CASE_TEMPLATE( test_complex_to_boolean, T, test_types )
 {
     // Real support
-    complex_rt<T, 0>  r{};
+    complex_rt<T, 0>  r;
 
-    BOOST_REQUIRE_EQUAL( r[0], T{} );
+    r[ 0 ] = T{};
     BOOST_CHECK( !r );
     r[ 0 ] = (T)2;
     BOOST_CHECK( (bool)r );
 
     // Check with multi-scalar
-    complex_rt<T, 2>  q{};
+    complex_rt<T, 2>  q;
 
-    BOOST_REQUIRE_EQUAL( q[0], T{} );
-    BOOST_REQUIRE_EQUAL( q[1], T{} );
-    BOOST_REQUIRE_EQUAL( q[2], T{} );
-    BOOST_REQUIRE_EQUAL( q[3], T{} );
+    q[ 0 ] = q[ 1 ] = q[ 2 ] = q[ 3 ] = T{};
     BOOST_CHECK( !q );
     q[ 2 ] = (T)3;
     BOOST_CHECK( (bool)q );
@@ -277,27 +274,32 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_complex_barrages, T, test_types )
 BOOST_AUTO_TEST_CASE_TEMPLATE( test_complex_real_equality, T, test_types )
 {
     T                 sample = 6;
-    complex_rt<T, 0>  r{};
-    complex_rt<T, 1>  c{};
-    complex_rt<T, 2>  q{};
-    complex_rt<T, 3>  o{};
+    complex_rt<T, 0>  r;
+    complex_rt<T, 1>  c;
+    complex_rt<T, 2>  q;
+    complex_rt<T, 3>  o;
 
     // Zero check
+    r[ 0 ] = T{};
     BOOST_CHECK( r != sample );
     BOOST_CHECK( sample != r );
     BOOST_CHECK( !(r == sample) );
     BOOST_CHECK( !(sample == r) );
 
+    c[ 0 ] = c[ 1 ] = T{};
     BOOST_CHECK( c != sample );
     BOOST_CHECK( sample != c );
     BOOST_CHECK( !(c == sample) );
     BOOST_CHECK( !(sample == c) );
 
+    q[ 0 ] = q[ 1 ] = q[ 2 ] = q[ 3 ] = T{};
     BOOST_CHECK( q != sample );
     BOOST_CHECK( sample != q );
     BOOST_CHECK( !(q == sample) );
     BOOST_CHECK( !(sample == q) );
 
+    o[ 0 ] = o[ 1 ] = o[ 2 ] = o[ 3 ] = T{};
+    o[ 4 ] = o[ 5 ] = o[ 6 ] = o[ 7 ] = T{};
     BOOST_CHECK( o != sample );
     BOOST_CHECK( sample != o );
     BOOST_CHECK( !(o == sample) );
@@ -362,9 +364,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_complex_real_equality, T, test_types )
 BOOST_AUTO_TEST_CASE( test_complex_equality )
 {
     // Two reals, same component type
-    complex_rt<int, 0>  a{}, b{};
+    complex_rt<int, 0>  a, b;
 
-    BOOST_REQUIRE_EQUAL( a[0], 0 );
+    a[ 0 ] = b[ 0 ] = 0;
     BOOST_CHECK( a == b );
     BOOST_CHECK( !(a != b) );
     a[ 0 ] = -2;
@@ -382,9 +384,9 @@ BOOST_AUTO_TEST_CASE( test_complex_equality )
     BOOST_CHECK( !(b == c) );
 
     // Two (regular) complex, same component type
-    complex_rt<int, 1>  d{}, e{};
+    complex_rt<int, 1>  d, e;
 
-    BOOST_REQUIRE_EQUAL( d[0], 0 );
+    d[ 0 ] = d[ 1 ] = e[ 0 ] = e[ 1 ] = 0;
     BOOST_CHECK( d == e );
     BOOST_CHECK( !(d != e) );
     d[ 0 ] = -3;
@@ -399,8 +401,9 @@ BOOST_AUTO_TEST_CASE( test_complex_equality )
     BOOST_CHECK( !(d != e) );
 
     // Two (regular) complex, differing component types
-    complex_rt<long, 1>  f{};
+    complex_rt<long, 1>  f;
 
+    f[ 0 ] = f[ 1 ] = 0L;
     BOOST_CHECK( d != f );
     BOOST_CHECK( !(d == f) );
     f[ 0 ] = d[ 0 ];
@@ -414,8 +417,9 @@ BOOST_AUTO_TEST_CASE( test_complex_equality )
     BOOST_CHECK( !(d != f) );
 
     // Mixed levels
-    complex_rt<int, 2>  g{};
+    complex_rt<int, 2>  g;
 
+    g[ 0 ] = g[ 1 ] = g[ 2 ] = g[ 3 ] = 0;
     BOOST_CHECK( e != g );
     BOOST_CHECK( !(e == g) );
     BOOST_CHECK( g != e );
@@ -443,8 +447,10 @@ BOOST_AUTO_TEST_CASE( test_complex_equality )
     BOOST_CHECK( !(g == e) );
 
     // Mixed levels, differing component types
-    complex_rt<long, 3>  h{};
+    complex_rt<long, 3>  h;
 
+    h[ 0 ] = h[ 1 ] = h[ 2 ] = h[ 3 ] = 0L;
+    h[ 4 ] = h[ 5 ] = h[ 6 ] = h[ 7 ] = 0L;
     BOOST_CHECK( e != h );
     BOOST_CHECK( !(e == h) );
     BOOST_CHECK( h != e );
@@ -517,6 +523,60 @@ BOOST_AUTO_TEST_CASE( test_complex_output )
 }
 
 BOOST_AUTO_TEST_SUITE_END()  // core_tests
+
+BOOST_AUTO_TEST_SUITE( constructor_tests )
+
+// Check the results of default- and scalar-construction.
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_default_real_construction, T, test_types )
+{
+    // Real
+    complex_rt<T, 0>  a{}, b{ (T)2 };
+
+    BOOST_CHECK_EQUAL( a[0], T{} );
+    BOOST_CHECK_EQUAL( b[0], T(2) );
+
+    // (Regular) complex
+    complex_rt<T, 1>  c{}, d{ (T)7 };
+
+    BOOST_CHECK_EQUAL( c[0], T{} );
+    BOOST_CHECK_EQUAL( c[1], T{} );
+    BOOST_CHECK_EQUAL( d[0], T(7) );
+    BOOST_CHECK_EQUAL( d[1], T{} );
+
+    // Quaternions
+    complex_rt<T, 2>  e{}, f{ (T)19 };
+
+    BOOST_CHECK_EQUAL( e[0], T{} );
+    BOOST_CHECK_EQUAL( e[1], T{} );
+    BOOST_CHECK_EQUAL( e[2], T{} );
+    BOOST_CHECK_EQUAL( e[3], T{} );
+    BOOST_CHECK_EQUAL( f[0], T(19) );
+    BOOST_CHECK_EQUAL( f[1], T{} );
+    BOOST_CHECK_EQUAL( f[2], T{} );
+    BOOST_CHECK_EQUAL( f[3], T{} );
+
+    // Octonions
+    complex_rt<T, 3>  g{}, h{ (T)101 };
+
+    BOOST_CHECK_EQUAL( g[0], T{} );
+    BOOST_CHECK_EQUAL( g[1], T{} );
+    BOOST_CHECK_EQUAL( g[2], T{} );
+    BOOST_CHECK_EQUAL( g[3], T{} );
+    BOOST_CHECK_EQUAL( g[4], T{} );
+    BOOST_CHECK_EQUAL( g[5], T{} );
+    BOOST_CHECK_EQUAL( g[6], T{} );
+    BOOST_CHECK_EQUAL( g[7], T{} );
+    BOOST_CHECK_EQUAL( h[0], T(101) );
+    BOOST_CHECK_EQUAL( h[1], T{} );
+    BOOST_CHECK_EQUAL( h[2], T{} );
+    BOOST_CHECK_EQUAL( h[3], T{} );
+    BOOST_CHECK_EQUAL( h[4], T{} );
+    BOOST_CHECK_EQUAL( h[5], T{} );
+    BOOST_CHECK_EQUAL( h[6], T{} );
+    BOOST_CHECK_EQUAL( h[7], T{} );
+}
+
+BOOST_AUTO_TEST_SUITE_END()  // constructor_tests
 
 BOOST_AUTO_TEST_SUITE( tuple_tests )
 

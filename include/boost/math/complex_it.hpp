@@ -197,6 +197,31 @@ struct complex_it
     operator bool() const
     { for (auto const &cc : c) if (cc) return true; return false; }
 
+    // Constructors
+    /** \brief  Default-construction
+
+    The compiler-generated definition is used to keep `complex_it` trivial (when
+    #value_type is trivial).
+
+        \post  When used for value-initialization, `(*this)[i] == value_type{}`
+               for every valid `i`.
+        \post  When used for default-initialization, each component is left
+               uninitialized if #value_type uses trivial default-construction,
+               otherwise it acts the same as value-initialization.
+     */
+    complex_it() = default;
+    /** \brief  Single-real constructor
+
+    Constucts a `complex_it` object from a single real number.  Can act as a
+    conversion.
+
+        \param[in] r  The real number to convert.
+
+        \post  `(*this)[0] == r` while `(*this)[i] == value_type{}` for any
+               valid `i` that's not zero.
+     */
+    constexpr  complex_it( value_type const &r )  : c{ r }  {}
+
 private:
     // Member data
     value_type  c[ static_size ];
