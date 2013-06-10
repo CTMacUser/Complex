@@ -19,3 +19,7 @@ a.out
 
 # Build directories
 bin
+
+libs
+
+boost

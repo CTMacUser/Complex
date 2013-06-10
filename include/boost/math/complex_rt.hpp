@@ -400,7 +400,7 @@ namespace std
 
     public:
         //! The component type, index-independent for complex numbers.
-        typedef T  type;
+        typedef typename boost::math::complex_rt<T, R>::value_type  type;
     };
 
 }  // namespace std

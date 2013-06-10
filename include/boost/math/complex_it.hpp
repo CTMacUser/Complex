@@ -146,8 +146,7 @@ struct complex_it
 
         \returns  `Lower( *this ) := { c[0]; c[1]; ...; c[2^(Rank - 1) - 1] }`
      */
-    auto  lower_barrage() const
-     -> barrage_type
+    auto  lower_barrage() const -> barrage_type
     {
         barrage_type  result;
 
@@ -171,8 +170,7 @@ struct complex_it
 
         \returns  `Upper( *this ) := { c[2^(Rank - 1)]; ...; c[2^Rank - 1] }`
      */
-    auto  upper_barrage() const
-     -> barrage_type
+    auto  upper_barrage() const -> barrage_type
     {
         barrage_type  result;
 
@@ -467,7 +465,7 @@ namespace std
 
     public:
         //! The component type, index-independent for complex numbers.
-        typedef T  type;
+        typedef typename boost::math::complex_it<T, R>::value_type  type;
     };
 
 }  // namespace std
