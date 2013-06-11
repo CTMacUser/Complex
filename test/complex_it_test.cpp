@@ -613,6 +613,27 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_default_real_construction, T, test_types )
     BOOST_CHECK_EQUAL( h[7], T{} );
 }
 
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_multireal_construction, T, test_types )
+{
+    // (Regular) complex
+    complex_it<T, 1> const  a{ (T)2, (T)3 };
+
+    BOOST_CHECK_EQUAL( a[0], T(2) );
+    BOOST_CHECK_EQUAL( a[1], T(3) );
+
+    // Quaternions
+    complex_it<T, 2> const  b{ (T)5, (T)7 }, c{ (T)11, (T)13, (T)17, (T)19 };
+
+    BOOST_CHECK_EQUAL( b[0], T(5) );
+    BOOST_CHECK_EQUAL( b[1], T(7) );
+    BOOST_CHECK_EQUAL( b[2], T{} );
+    BOOST_CHECK_EQUAL( b[3], T{} );
+    BOOST_CHECK_EQUAL( c[0], T(11) );
+    BOOST_CHECK_EQUAL( c[1], T(13) );
+    BOOST_CHECK_EQUAL( c[2], T(17) );
+    BOOST_CHECK_EQUAL( c[3], T(19) );
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // constructor_tests
 
 BOOST_AUTO_TEST_SUITE( tuple_tests )

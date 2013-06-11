@@ -33,7 +33,7 @@
 #include <tuple>
 #include <type_traits>
 
-// Put includes from Boost here.
+#include "boost/math/complex_it.hpp"
 
 
 namespace boost
@@ -121,7 +121,7 @@ struct complex_rt< Number, 0u >
     complex_rt() = default;
     /** \brief  Single-real constructor
 
-    Constucts a `complex_rt` object from a single real number.  Can act as a
+    Constructs a `complex_rt` object from a single real number.  Can act as a
     conversion.
 
         \param[in] r  The real number to convert.
@@ -130,7 +130,50 @@ struct complex_rt< Number, 0u >
      */
     constexpr  complex_rt( value_type const &r )  : r{ r }  {}
 
+    /** \brief  Convert from a `complex_it`.
+
+    Constructs a `complex_rt` object with one from the other philosophy.  To
+    prevent ambiguities, conversion is marked `explicit`.  The source object can
+    be of any size; excess components will be truncated.
+
+        \param[in] c  The `complex_it` object to convert.
+
+        \post  `(*this)[0] == static_cast<value_type>(c[0])`.
+     */
+    template < typename T, size_type R >
+    explicit constexpr  complex_rt( complex_it<T, R> const &c )
+        : r{ static_cast<value_type>(c[ 0 ]) }
+    {}
+
+    // More operators
+    /** \brief  Convert to a `complex_it`.
+
+    Creates a `complex_it` object with one from this philosophy.  To prevent
+    ambiguities, conversion is marked `explicit`.  The destination object can be
+    of any size; excess components will be value-initialized.
+
+        \returns  A value `x` such that (given destination component type `T`):
+                  - `x[k] == static_cast<T>( (*this)[k] )`.
+                    for all indices `k` that are valid for both `x` and `*this`.
+                  - `x[k] == T{}` for all valid indices `k >=` #static_size.
+     */
+    template < typename T, size_type R >
+    explicit constexpr  operator complex_it<T, R>() const
+    { return complex_it<T, R>{static_cast<T>( r )}; }
+
 private:
+    // Authorize use of hidden constructor below for complex_rt<Number, 1u>
+    friend class complex_rt<value_type, rank + 1u>;
+
+    // Hidden constructor to take a specific component from a complex_it object.
+    template < size_type I, typename T, size_type R >
+    explicit constexpr
+    complex_rt( std::integral_constant<size_type, I>, complex_it<T, R> const
+     &c )
+        : r{ (I < complex_it<T, R>::static_size) ? static_cast<value_type>(c[I])
+          : value_type{} }
+    {}
+
     // Member data
     value_type  r;
 };
@@ -201,28 +244,106 @@ struct complex_rt
     #value_type is trivial).
 
         \post  When used for value-initialization, `(*this)[i] == value_type{}`
-               for every valid `i`.  (And `this->lower_barrage()` and
-               `this->upper_barrage()` both equal `barrage_type{}`.)
-        \post  When used for default-initialization, each component (and
-               barrage) is left uninitialized if #value_type uses trivial
-               default-construction, otherwise it acts the same as
-               value-initialization.
+               for every valid `i`.
+        \post  When used for default-initialization, each component is left
+               uninitialized if #value_type uses trivial default-construction,
+               otherwise it acts the same as value-initialization.
      */
     complex_rt() = default;
-    /** \brief  Single-real constructor
+    /** \brief  Single-real conversion
 
-    Constucts a `complex_rt` object from a single real number.  Can act as a
+    Constructs a `complex_rt` object from a single real number.  Can act as a
     conversion.
 
         \param[in] r  The real number to convert.
 
-        \post  `(*this)[0] == r` while `(*this)[i] == value_type{}` for any
-               valid `i` that's not zero.  (And `this->lower_barrage() == r`
-               while `this->upper_barrage() == barrage_type{}`.)
+        \post  `(*this)[0] == r`.
+        \post  For `0 < i <` #static_size, `(*this)[i] == value_type{}`.
      */
     constexpr  complex_rt( value_type const &r )  : b{ {r} }  {}
+    /** \brief  List-of-reals constructor
+
+    Constucts a `complex_rt` object from a list of real numbers.
+
+        \pre  `sizeof...(u)` \<= #static_size - 2.
+        \pre  Each parameter in `u` must have a (non-narrowing) implicit
+              conversion to #value_type.
+
+        \param[in] r  The real component.
+        \param[in] i  The classic imaginary component.
+        \param[in] u  The higher-order imaginary components.  May be empty.
+
+        \post  `(*this)[0] == r`.
+        \post  `(*this)[1] == i`.
+        \post  For `1 < k <= sizeof...(u)+1`, `(*this)[k] == Explode(u; k-2)`.
+        \post  For `sizeof...(u) + 1 < k <` #static_size, `(*this)[k] ==
+               value_type{}`.
+     */
+    template < typename ...Args >
+    constexpr  complex_rt( value_type const &r, value_type const &i, Args const
+     &...u )  : complex_rt{ complex_it<value_type, rank>{r, i, u...} }  {}
+
+    /** \brief  Convert from a `complex_it`.
+
+    Constructs a `complex_rt` object with one from the other philosophy.  To
+    prevent ambiguities, conversion is marked `explicit`.  The source object can
+    be of any size; either excess components will be truncated or missing
+    components will be value-initialized.
+
+        \pre  There is some sort of conversion from `decltype(c)::value_type` to
+              #value_type.
+
+        \param[in] c  The `complex_it` object to convert.
+
+        \post  For `0 <= k < Min( decltype(c)::static_size,` #static_size `)`,
+               `(*this)[k] == static_cast<value_type>(c[k])`.
+        \post  For `decltype(c)::static_size <= k <` #static_size,
+               `(*this)[k] == value_type{}`.
+     */
+    template < typename T, size_type R >
+    explicit constexpr  complex_rt( complex_it<T, R> const &c )
+        : complex_rt{ std::integral_constant<size_type, 0u>{}, c }
+    {}
+
+    // More operators
+    /** \brief  Convert to a `complex_it`.
+
+    Creates a `complex_it` object with one from this philosophy.  To prevent
+    ambiguities, conversion is marked `explicit`.  The destination object can be
+    of any size; excess components will be value-initialized.
+
+        \returns  A value `x` such that:
+                  - `x[k] == static_cast<decltype(x)::value_type>((*this)[k])`
+                    for all indices `k` that are valid for both `x` and `*this`.
+                  - `x[k] == decltype(x)::value_type{}` for `k >=` #static_size.
+     */
+    template < typename T, size_type R >
+    explicit  operator complex_it<T, R>() const
+    {
+        complex_it<T, R>  result{};
+        auto              b = begin( result );
+        auto const        e = end( result );
+        size_type         i = 0u;
+
+        while ( (static_size > i) && (e != b) )
+            *b++ = static_cast<T>( (*this)[i++] );
+        return result;
+    }
 
 private:
+    // Authorize use of hidden constructor below for complex_rt<Number, Rank+1u>
+    friend class complex_rt<value_type, rank + 1u>;
+
+    // Hidden constructor to take specific components from a complex_it object.
+    template < size_type Start, typename T, size_type R >
+    explicit constexpr
+    complex_rt( std::integral_constant<size_type, Start>, complex_it<T, R> const
+     &c )
+        : b{ barrage_type{std::integral_constant<size_type, Start>{}, c},
+          barrage_type{std::integral_constant<size_type, Start + static_size /
+          2u>{}, c} }
+    {}
+
     // Member data
     barrage_type  b[ 2 ];
 };
@@ -361,7 +482,7 @@ additive identity.
 
     \retval true   If there is a mismatch between corresponding barrages
                    between *l* and *r*; or when their lengths differ, there is
-                   at least one non-zero value amoung the excess components.
+                   at least one non-zero value among the excess components.
     \retval false  Otherwise.
  */
 template < typename T, std::size_t R, typename U, std::size_t S >

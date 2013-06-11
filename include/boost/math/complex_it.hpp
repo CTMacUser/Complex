@@ -56,7 +56,7 @@ used for support operations use looping.
 This class should satisfy the literal, standard-layout, trivially-copyable,
 trivial, and/or P.O.D. properties iff the component type also satisfies the
 corresponding property.  The type supports default-, copy-, and/or
-move-construction, destruction, copy- and/or move-assigment if the component
+move-construction, destruction, copy- and/or move-assignment if the component
 type supports the corresponding operation.
 
 The component type should be a regular type, but can generate condition events
@@ -181,8 +181,8 @@ struct complex_it
     // Conditions
     /** \brief  Boolean conversion
 
-    Makes values of this type suitable for Boolean situtations.  The member
-    function is marked `explicit`, so it should be usuable for contextual
+    Makes values of this type suitable for Boolean situations.  The member
+    function is marked `explicit`, so it should be usable for contextual
     Boolean calls.  It uses contextual Boolean conversions of its components in
     turn.
 
@@ -210,17 +210,26 @@ struct complex_it
                otherwise it acts the same as value-initialization.
      */
     complex_it() = default;
-    /** \brief  Single-real constructor
+    /** \brief  List-of-reals constructor / Single-real conversion
 
-    Constucts a `complex_it` object from a single real number.  Can act as a
-    conversion.
+    Constructs a `complex_it` object from a list of real numbers.  Can act as a
+    conversion when given one real number.
 
-        \param[in] r  The real number to convert.
+        \pre  `sizeof...(i)` \< #static_size.
+        \pre  Each parameter in `i` must have a (non-narrowing) implicit
+              conversion to #value_type.
 
-        \post  `(*this)[0] == r` while `(*this)[i] == value_type{}` for any
-               valid `i` that's not zero.
+        \param[in] r  The real component.
+        \param[in] i  The imaginary components.  May be empty.
+
+        \post  `(*this)[0] == r`.
+        \post  For `0 < k <= sizeof...(i)`, `(*this)[k] == Explode(i; k - 1)`.
+        \post  For `sizeof...(i) < k <` #static_size, `(*this)[k] ==
+               value_type{}`.
      */
-    constexpr  complex_it( value_type const &r )  : c{ r }  {}
+    template < typename ...Args >
+    constexpr  complex_it( value_type const &r, Args const &...i )
+     : c{ r, i... }  {}
 
 private:
     // Member data

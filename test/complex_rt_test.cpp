@@ -13,6 +13,7 @@
 #include <boost/mpl/list.hpp>
 
 #include "boost/math/complex_rt.hpp"
+#include "boost/math/complex_it.hpp"
 
 #include <cstddef>
 #include <ios>
@@ -574,6 +575,203 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_default_real_construction, T, test_types )
     BOOST_CHECK_EQUAL( h[5], T{} );
     BOOST_CHECK_EQUAL( h[6], T{} );
     BOOST_CHECK_EQUAL( h[7], T{} );
+}
+
+// Check conversion from complex_it objects.
+BOOST_AUTO_TEST_CASE( test_cross_philosophy_construction )
+{
+    using boost::math::complex_it;
+
+    // Real-to-real
+    complex_rt<int, 0> const  a{ complex_it<int, 0>{5} };
+
+    BOOST_CHECK_EQUAL( a[0], 5 );
+
+    // Real-to-real, different component types
+    complex_rt<long, 0> const  b{ complex_it<int, 0>{2} };
+
+    BOOST_CHECK_EQUAL( b[0], 2L );
+
+    // Downgrade to real
+    complex_rt<int, 0> const  c{ complex_it<int, 1>{3, -7} };
+
+    BOOST_CHECK_EQUAL( c[0], 3 );
+
+    // Downgrade to real, different component types
+    complex_rt<int, 0> const  d{ complex_it<long, 1>{-11, 13} };
+
+    BOOST_CHECK_EQUAL( d[0], -11 );
+
+    // Upgrade from real
+    complex_rt<int, 1> const  e{ complex_it<int, 0>{17} };
+
+    BOOST_CHECK_EQUAL( e[0], 17 );
+    BOOST_CHECK_EQUAL( e[1], 0 );
+
+    // Upgrade from real, different component types
+    complex_rt<long, 2> const  f{ complex_it<int, 0>{-19} };
+
+    BOOST_CHECK_EQUAL( f[0], -19L );
+    BOOST_CHECK_EQUAL( f[1], 0L );
+    BOOST_CHECK_EQUAL( f[2], 0L );
+    BOOST_CHECK_EQUAL( f[3], 0L );
+
+    // Same post-real rank
+    complex_rt<int, 2> const  g{ complex_it<int, 2>{23, 29, 31, 37} };
+
+    BOOST_CHECK_EQUAL( g[0], 23 );
+    BOOST_CHECK_EQUAL( g[1], 29 );
+    BOOST_CHECK_EQUAL( g[2], 31 );
+    BOOST_CHECK_EQUAL( g[3], 37 );
+
+    // Same post-real rank, different component types
+    complex_rt<unsigned long, 2> const  h{ complex_it<int, 2>{41, 43, 47, 53} };
+
+    BOOST_CHECK_EQUAL( h[0], 41UL );
+    BOOST_CHECK_EQUAL( h[1], 43UL );
+    BOOST_CHECK_EQUAL( h[2], 47UL );
+    BOOST_CHECK_EQUAL( h[3], 53UL );
+
+    // Downgrade post-real ranks
+    complex_rt<int, 1> const  k{ complex_it<int, 2>{57, 59, 61, 67} };
+
+    BOOST_CHECK_EQUAL( k[0], 57 );
+    BOOST_CHECK_EQUAL( k[1], 59 );
+
+    // Downgrade post-real ranks, different component types
+    complex_rt<long, 1> const  m{ complex_it<unsigned, 2>{71u, 73u, 79u, 83u} };
+
+    BOOST_CHECK_EQUAL( m[0], 71L );
+    BOOST_CHECK_EQUAL( m[1], 73L );
+
+    // Upgrade post-real ranks
+    complex_rt<int, 2> const  n{ complex_it<int, 1>{87, 89} };
+
+    BOOST_CHECK_EQUAL( n[0], 87 );
+    BOOST_CHECK_EQUAL( n[1], 89 );
+    BOOST_CHECK_EQUAL( n[2], 0 );
+    BOOST_CHECK_EQUAL( n[3], 0 );
+
+    // Upgrade post-real ranks, different component types
+    complex_rt<unsigned, 3> const  p{ complex_it<long, 1>{93L, 97L} };
+
+    BOOST_CHECK_EQUAL( p[0], 93u );
+    BOOST_CHECK_EQUAL( p[1], 97u );
+    BOOST_CHECK_EQUAL( p[2], 0u );
+    BOOST_CHECK_EQUAL( p[3], 0u );
+    BOOST_CHECK_EQUAL( p[4], 0u );
+    BOOST_CHECK_EQUAL( p[5], 0u );
+    BOOST_CHECK_EQUAL( p[6], 0u );
+    BOOST_CHECK_EQUAL( p[7], 0u );
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_multireal_construction, T, test_types )
+{
+    // (Regular) complex
+    complex_rt<T, 1> const  a{ (T)2, (T)3 };
+
+    BOOST_CHECK_EQUAL( a[0], T(2) );
+    BOOST_CHECK_EQUAL( a[1], T(3) );
+
+    // Quaternions
+    complex_rt<T, 2> const  b{ (T)5, (T)7 }, c{ (T)11, (T)13, (T)17, (T)19 };
+
+    BOOST_CHECK_EQUAL( b[0], T(5) );
+    BOOST_CHECK_EQUAL( b[1], T(7) );
+    BOOST_CHECK_EQUAL( b[2], T{} );
+    BOOST_CHECK_EQUAL( b[3], T{} );
+    BOOST_CHECK_EQUAL( c[0], T(11) );
+    BOOST_CHECK_EQUAL( c[1], T(13) );
+    BOOST_CHECK_EQUAL( c[2], T(17) );
+    BOOST_CHECK_EQUAL( c[3], T(19) );
+}
+
+// Check conversion to complex_it objects.
+BOOST_AUTO_TEST_CASE( test_cross_philosophy_conversion )
+{
+    using boost::math::complex_it;
+
+    // Real-to-real
+    complex_it<int, 0> const  a{ complex_rt<int, 0>{5} };
+
+    BOOST_CHECK_EQUAL( a[0], 5 );
+
+    // Real-to-real, different component types
+    complex_it<long, 0> const  b{ complex_rt<int, 0>{2} };
+
+    BOOST_CHECK_EQUAL( b[0], 2L );
+
+    // Downgrade to real
+    complex_it<int, 0> const  c{ complex_rt<int, 1>{3, -7} };
+
+    BOOST_CHECK_EQUAL( c[0], 3 );
+
+    // Downgrade to real, different component types
+    complex_it<int, 0> const  d{ complex_rt<long, 1>{-11, 13} };
+
+    BOOST_CHECK_EQUAL( d[0], -11 );
+
+    // Upgrade from real
+    complex_it<int, 1> const  e{ complex_rt<int, 0>{17} };
+
+    BOOST_CHECK_EQUAL( e[0], 17 );
+    BOOST_CHECK_EQUAL( e[1], 0 );
+
+    // Upgrade from real, different component types
+    complex_it<long, 2> const  f{ complex_rt<int, 0>{-19} };
+
+    BOOST_CHECK_EQUAL( f[0], -19L );
+    BOOST_CHECK_EQUAL( f[1], 0L );
+    BOOST_CHECK_EQUAL( f[2], 0L );
+    BOOST_CHECK_EQUAL( f[3], 0L );
+
+    // Same post-real rank
+    complex_it<int, 2> const  g{ complex_rt<int, 2>{23, 29, 31, 37} };
+
+    BOOST_CHECK_EQUAL( g[0], 23 );
+    BOOST_CHECK_EQUAL( g[1], 29 );
+    BOOST_CHECK_EQUAL( g[2], 31 );
+    BOOST_CHECK_EQUAL( g[3], 37 );
+
+    // Same post-real rank, different component types
+    complex_it<unsigned long, 2> const  h{ complex_rt<int, 2>{41, 43, 47, 53} };
+
+    BOOST_CHECK_EQUAL( h[0], 41UL );
+    BOOST_CHECK_EQUAL( h[1], 43UL );
+    BOOST_CHECK_EQUAL( h[2], 47UL );
+    BOOST_CHECK_EQUAL( h[3], 53UL );
+
+    // Downgrade post-real ranks
+    complex_it<int, 1> const  k{ complex_rt<int, 2>{57, 59, 61, 67} };
+
+    BOOST_CHECK_EQUAL( k[0], 57 );
+    BOOST_CHECK_EQUAL( k[1], 59 );
+
+    // Downgrade post-real ranks, different component types
+    complex_it<long, 1> const  m{ complex_rt<unsigned, 2>{71u, 73u, 79u, 83u} };
+
+    BOOST_CHECK_EQUAL( m[0], 71L );
+    BOOST_CHECK_EQUAL( m[1], 73L );
+
+    // Upgrade post-real ranks
+    complex_it<int, 2> const  n{ complex_rt<int, 1>{87, 89} };
+
+    BOOST_CHECK_EQUAL( n[0], 87 );
+    BOOST_CHECK_EQUAL( n[1], 89 );
+    BOOST_CHECK_EQUAL( n[2], 0 );
+    BOOST_CHECK_EQUAL( n[3], 0 );
+
+    // Upgrade post-real ranks, different component types
+    complex_it<unsigned, 3> const  p{ complex_rt<long, 1>{93L, 97L} };
+
+    BOOST_CHECK_EQUAL( p[0], 93u );
+    BOOST_CHECK_EQUAL( p[1], 97u );
+    BOOST_CHECK_EQUAL( p[2], 0u );
+    BOOST_CHECK_EQUAL( p[3], 0u );
+    BOOST_CHECK_EQUAL( p[4], 0u );
+    BOOST_CHECK_EQUAL( p[5], 0u );
+    BOOST_CHECK_EQUAL( p[6], 0u );
+    BOOST_CHECK_EQUAL( p[7], 0u );
 }
 
 BOOST_AUTO_TEST_SUITE_END()  // constructor_tests
