@@ -130,6 +130,22 @@ struct complex_rt< Number, 0u >
      */
     constexpr  complex_rt( value_type const &r )  : r{ r }  {}
 
+    /** \brief  Convert from a `complex_rt`, same #rank, different #value_type
+
+    Constructs a `complex_rt` object from one with a different #value_type, but
+    the same #rank.
+
+        \pre  The component type for `s` has to be implicitly convertible to
+              #value_type.
+
+        \param[in] s  The real number copy source.
+
+        \post  `(*this)[0] == s[0]`.
+
+     */
+    template < typename T >
+    constexpr  complex_rt( complex_rt<T, rank> const &s )  : r{ s[0] }  {}
+
     /** \brief  Convert from a `complex_it`.
 
     Constructs a `complex_rt` object with one from the other philosophy.  To
@@ -282,6 +298,24 @@ struct complex_rt
     template < typename ...Args >
     constexpr  complex_rt( value_type const &r, value_type const &i, Args const
      &...u )  : complex_rt{ complex_it<value_type, rank>{r, i, u...} }  {}
+
+    /** \brief  Convert from a `complex_rt`, same #rank, different #value_type
+
+    Constructs a `complex_rt` object from one with a different #value_type, but
+    the same #rank.
+
+        \pre  The component type for `s` has to be implicitly convertible to
+              #value_type.
+
+        \param[in] s  The complex number copy source.
+
+        \post  `(*this)[k] == s[k]` for all valid indices `k`.
+
+     */
+    template < typename T >
+    constexpr  complex_rt( complex_rt<T, rank> const &s )
+        : b{ s.lower_barrage(), s.upper_barrage() }
+    {}
 
     /** \brief  Convert from a `complex_it`.
 

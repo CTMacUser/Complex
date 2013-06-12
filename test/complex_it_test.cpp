@@ -634,6 +634,32 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_multireal_construction, T, test_types )
     BOOST_CHECK_EQUAL( c[3], T(19) );
 }
 
+BOOST_AUTO_TEST_CASE( test_same_size_diff_type_conversion )
+{
+    // Note that same-type/same-size is covered by the automatically-defined
+    // copy constructor, which (usually) takes priority over constructor
+    // templates (such as the ones used here).
+
+    // Reals
+    complex_it<unsigned, 0> const  a{ complex_it<unsigned char, 0>{'\0'} };
+
+    BOOST_CHECK_EQUAL( a[0], 0u );
+
+    // (Regular) Complexes
+    complex_it<long, 1> const  b{ complex_it<int, 1>{-2, +3} };
+
+    BOOST_CHECK_EQUAL( b[0], -2L );
+    BOOST_CHECK_EQUAL( b[1], +3L );
+
+    // Quaternions
+    complex_it<double, 2> const  c{ complex_it<float,2>{+5.5f, -7.0f, +11.0f} };
+
+    BOOST_CHECK_CLOSE( c[0], +5.5, 0.1 );
+    BOOST_CHECK_CLOSE( c[1], -7.0, 0.1 );
+    BOOST_CHECK_CLOSE( c[2], 11.0, 0.1 );
+    BOOST_CHECK_CLOSE( c[3],  0.0, 0.1 );
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // constructor_tests
 
 BOOST_AUTO_TEST_SUITE( tuple_tests )

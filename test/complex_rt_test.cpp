@@ -774,6 +774,35 @@ BOOST_AUTO_TEST_CASE( test_cross_philosophy_conversion )
     BOOST_CHECK_EQUAL( p[7], 0u );
 }
 
+BOOST_AUTO_TEST_CASE( test_same_size_diff_type_conversion )
+{
+    // Note that same-type/same-size is covered by the automatically-defined
+    // copy constructor, which (usually) takes priority over constructor
+    // templates (such as the ones used here).
+
+    // Reals
+    complex_rt<unsigned, 0> const  a{ complex_rt<unsigned char, 0>{'\0'} };
+
+    BOOST_CHECK_EQUAL( a[0], 0u );
+
+    // (Regular) Complexes
+    complex_rt<long, 1> const  b{ complex_rt<int, 1>{-2, +3} };
+
+    BOOST_CHECK_EQUAL( b[0], -2L );
+    BOOST_CHECK_EQUAL( b[1], +3L );
+
+    // Quaternions
+    complex_rt<double, 2> const  c{ complex_rt<float,2>{+5.5f, -7.0f, +11.0f} };
+
+    BOOST_CHECK_CLOSE( c[0], +5.5, 0.1 );
+    BOOST_CHECK_CLOSE( c[1], -7.0, 0.1 );
+    BOOST_CHECK_CLOSE( c[2], 11.0, 0.1 );
+    BOOST_CHECK_CLOSE( c[3],  0.0, 0.1 );
+
+    // Since brace-initialization is used in the implementation, narrowing
+    // conversions can get flagged as warnings.
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // constructor_tests
 
 BOOST_AUTO_TEST_SUITE( tuple_tests )

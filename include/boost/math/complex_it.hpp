@@ -231,6 +231,23 @@ struct complex_it
     constexpr  complex_it( value_type const &r, Args const &...i )
      : c{ r, i... }  {}
 
+    /** \brief  Convert from a `complex_it`, same #rank, different #value_type
+
+    Constructs a `complex_it` object from one with a different #value_type, but
+    the same #rank.
+
+        \pre  The component type for `s` has to be implicitly convertible to
+              #value_type.
+
+        \param[in] s  The complex number copy source.
+
+        \post  `(*this)[k] == s[k]` for all valid indices `k`.
+
+     */
+    template < typename T >
+    complex_it( complex_it<T, rank> const &s )
+    { std::copy(&s[ 0 ], &s[ static_size ], &c[ 0 ]); }
+
 private:
     // Member data
     value_type  c[ static_size ];
