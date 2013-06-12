@@ -242,13 +242,55 @@ struct complex_it
         \param[in] s  The complex number copy source.
 
         \post  `(*this)[k] == s[k]` for all valid indices `k`.
-
      */
     template < typename T >
     complex_it( complex_it<T, rank> const &s )
     { std::copy(&s[ 0 ], &s[ static_size ], &c[ 0 ]); }
+    /** \brief  Convert from one or two barrages.
+
+    Constructs a `complex_it` from one or two barrages.  It is not required that
+    one or both barrages share #value_type.
+
+        \pre  The component types for `l` and `u` each have to be implicitly
+              convertible to #value_type.
+
+        \param[in] l  The complex number copy source for the lower barrage.
+        \param[in] u  The complex number copy source for the upper barrage.  If
+                      not given, it defaults to `barrage_type{}`.
+
+        \post  `this->lower_barrage() == l`.
+        \post  `this->upper_barrage() == u`.
+     */
+    template <
+        typename    T,
+        size_type   R,
+        typename ...U,
+        typename      = typename std::enable_if<(R + 1u == rank)>::type,
+        typename      = typename std::enable_if<((1u + sizeof...( U )) <= (1ULL
+         << ( rank - R )))>::type
+    >
+    complex_it( complex_it<T, R> const &l, complex_it<U, R> const &...u )
+    { copy_barrages(0u, l, u...); }
 
 private:
+    // Implements the cross-copy/barrage/sub-barrage constructor, base case
+    void  copy_barrages( size_type start )
+    { std::fill(&c[ start ], &c[ static_size ], value_type{}); }
+
+    // Implements the cross-copy/barrage/sub-barrage constructor, main case
+    template < typename T, size_type R, typename ...U >
+    void  copy_barrages( size_type start, complex_it<T, R> const &first,
+     complex_it<U, R> const &...rest )
+    {
+        constexpr auto  barrage_length = static_size >> ( rank - R );
+
+        static_assert( rank >= R, "Pre-condition broken" );
+        static_assert( static_size / barrage_length >= 1u + sizeof...(U),
+         "Pre-condition broken" );
+        std::copy( &first[0], &first[barrage_length], &c[start] );
+        copy_barrages( start + barrage_length, rest... );
+    }
+
     // Member data
     value_type  c[ static_size ];
 };

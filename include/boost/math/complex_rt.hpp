@@ -310,12 +310,29 @@ struct complex_rt
         \param[in] s  The complex number copy source.
 
         \post  `(*this)[k] == s[k]` for all valid indices `k`.
-
      */
     template < typename T >
     constexpr  complex_rt( complex_rt<T, rank> const &s )
         : b{ s.lower_barrage(), s.upper_barrage() }
     {}
+    /** \brief  Convert from one or two barrages.
+
+    Constructs a `complex_rt` from one or two barrages.  It is not required that
+    one or both barrages share #value_type.
+
+        \pre  The component types for `l` and `u` each have to be implicitly
+              convertible to #value_type.
+
+        \param[in] l  The complex number copy source for the lower barrage.
+        \param[in] u  The complex number copy source for the upper barrage.  If
+                      not given, it defaults to `barrage_type{}`.
+
+        \post  `this->lower_barrage() == l`.
+        \post  `this->upper_barrage() == u`.
+     */
+    template < typename T, typename U = value_type >
+    constexpr  complex_rt( complex_rt<T, rank - 1u> const &l,
+     complex_rt<U, rank - 1u> const &u = {} )  : b{ l, u }  {}
 
     /** \brief  Convert from a `complex_it`.
 

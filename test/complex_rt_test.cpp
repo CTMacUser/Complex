@@ -803,6 +803,58 @@ BOOST_AUTO_TEST_CASE( test_same_size_diff_type_conversion )
     // conversions can get flagged as warnings.
 }
 
+BOOST_AUTO_TEST_CASE( test_barrage_conversion )
+{
+    // Same type between barrages and composite
+    complex_rt<int, 0> const     a1{ 2 }, a2{ -3 };
+    complex_rt<int, 1> const     a{ a1, a2 };
+    complex_rt<double, 1> const  b1{ -5.5 }, b2{ +7.1, -11.3 };
+    complex_rt<double, 2> const  b{ b1, b2 };
+
+    BOOST_CHECK_EQUAL( a[0], a1[0] );
+    BOOST_CHECK_EQUAL( a[1], a2[0] );
+
+    BOOST_CHECK_CLOSE( b[0], b1[0], 0.1 );
+    BOOST_CHECK_CLOSE( b[1], b1[1], 0.1 );
+    BOOST_CHECK_CLOSE( b[2], b2[0], 0.1 );
+    BOOST_CHECK_CLOSE( b[3], b2[1], 0.1 );
+
+    // Only one barrage
+    complex_rt<int, 1> const     aa{ a2 };
+    complex_rt<double, 2> const  bb{ b1 };
+
+    BOOST_CHECK_EQUAL( aa[0], a2[0] );
+    BOOST_CHECK_EQUAL( aa[1], 0 );
+
+    BOOST_CHECK_CLOSE( bb[0], b1[0], 0.1 );
+    BOOST_CHECK_CLOSE( bb[1], b1[1], 0.1 );
+    BOOST_CHECK_CLOSE( bb[2], 0.0, 0.1 );
+    BOOST_CHECK_CLOSE( bb[3], 0.0, 0.1 );
+
+    // Mixed types
+    complex_rt<long, 1> const         c{ complex_rt<int, 0>{-13},
+     complex_rt<long, 0>{17L} };
+    complex_rt<long double, 2> const  d{ complex_rt<float, 1>{-19.4f},
+     complex_rt<double, 1>{23.0, -29.8} };
+
+    BOOST_CHECK_EQUAL( c[0], -13L );
+    BOOST_CHECK_EQUAL( c[1], 17L );
+
+    BOOST_CHECK_CLOSE( d[0], -19.4L, 0.1 );
+    BOOST_CHECK_CLOSE( d[1], 0.0L, 0.1 );
+    BOOST_CHECK_CLOSE( d[2], 23.0L, 0.1 );
+    BOOST_CHECK_CLOSE( d[3], -29.8L, 0.1 );
+
+    // One mixed barrage
+    complex_rt<short, 1> const  e{ complex_rt<char, 0>{125} };
+
+    BOOST_CHECK_EQUAL( e[0], 125 );
+    BOOST_CHECK_EQUAL( e[1], 0 );
+
+    // Since brace-initialization is used in the implementation, narrowing
+    // conversions can get flagged as warnings.
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // constructor_tests
 
 BOOST_AUTO_TEST_SUITE( tuple_tests )
