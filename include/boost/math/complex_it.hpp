@@ -231,46 +231,38 @@ struct complex_it
     constexpr  complex_it( value_type const &r, Args const &...i )
      : c{ r, i... }  {}
 
-    /** \brief  Convert from a `complex_it`, same #rank, different #value_type
+    /** \brief  Convert from one or more non-longer `complex_it` objects.
 
-    Constructs a `complex_it` object from one with a different #value_type, but
-    the same #rank.
+    Constructs a `complex_it` from a concatenation of components from a given
+    list of `complex_it` objects.  The given sources do not need a common
+    component type.  Can act as a conversion.
 
-        \pre  The component type for `s` has to be implicitly convertible to
-              #value_type.
+        \pre  The component types for `first` and each `rest` all have to be
+              implicitly convertible to #value_type.
+        \pre  The total number of components from `first` and each `rest`
+              combined cannot exceed #static_size.
 
-        \param[in] s  The complex number copy source.
+        \param[in] first  The first set of components to copy.
+        \param[in] rest   The remaining sets of components to copy.  May be
+                          empty.
 
-        \post  `(*this)[k] == s[k]` for all valid indices `k`.
-     */
-    template < typename T >
-    complex_it( complex_it<T, rank> const &s )
-    { std::copy(&s[ 0 ], &s[ static_size ], &c[ 0 ]); }
-    /** \brief  Convert from one or two barrages.
-
-    Constructs a `complex_it` from one or two barrages.  It is not required that
-    one or both barrages share #value_type.
-
-        \pre  The component types for `l` and `u` each have to be implicitly
-              convertible to #value_type.
-
-        \param[in] l  The complex number copy source for the lower barrage.
-        \param[in] u  The complex number copy source for the upper barrage.  If
-                      not given, it defaults to `barrage_type{}`.
-
-        \post  `this->lower_barrage() == l`.
-        \post  `this->upper_barrage() == u`.
+        \post  Given `auto const x = std::tuple_cat(first, rest...);` and `using
+               TT = decltype(x);`:
+               - For `0 <= k < Min(static_size, std::tuple_size<TT>::value)`,
+                 `get<k>(*this) == get<k>(x)`.
+               - For `std::tuple_size<TT>::value <= k < static_size`,
+                 `get<k>(*this) == value_type{}`.
      */
     template <
         typename    T,
         size_type   R,
         typename ...U,
-        typename      = typename std::enable_if<(R + 1u == rank)>::type,
+        typename      = typename std::enable_if<(R <= rank)>::type,
         typename      = typename std::enable_if<((1u + sizeof...( U )) <= (1ULL
          << ( rank - R )))>::type
     >
-    complex_it( complex_it<T, R> const &l, complex_it<U, R> const &...u )
-    { copy_barrages(0u, l, u...); }
+    complex_it( complex_it<T, R> const &first, complex_it<U, R> const &...rest )
+    { copy_barrages(0u, first, rest...); }
 
 private:
     // Implements the cross-copy/barrage/sub-barrage constructor, base case
@@ -278,15 +270,14 @@ private:
     { std::fill(&c[ start ], &c[ static_size ], value_type{}); }
 
     // Implements the cross-copy/barrage/sub-barrage constructor, main case
+    // (Assumes `R <= rank` and `start + ((1 + sizeof...(U)) << (rank - R)) <=
+    // static_size`.)
     template < typename T, size_type R, typename ...U >
     void  copy_barrages( size_type start, complex_it<T, R> const &first,
      complex_it<U, R> const &...rest )
     {
         constexpr auto  barrage_length = static_size >> ( rank - R );
 
-        static_assert( rank >= R, "Pre-condition broken" );
-        static_assert( static_size / barrage_length >= 1u + sizeof...(U),
-         "Pre-condition broken" );
         std::copy( &first[0], &first[barrage_length], &c[start] );
         copy_barrages( start + barrage_length, rest... );
     }

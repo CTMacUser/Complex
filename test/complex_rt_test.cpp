@@ -665,6 +665,7 @@ BOOST_AUTO_TEST_CASE( test_cross_philosophy_construction )
     BOOST_CHECK_EQUAL( p[7], 0u );
 }
 
+// Check conversion from a list of scalars.
 BOOST_AUTO_TEST_CASE_TEMPLATE( test_multireal_construction, T, test_types )
 {
     // (Regular) complex
@@ -774,6 +775,7 @@ BOOST_AUTO_TEST_CASE( test_cross_philosophy_conversion )
     BOOST_CHECK_EQUAL( p[7], 0u );
 }
 
+// Check conversions keeping the same length, but different component types.
 BOOST_AUTO_TEST_CASE( test_same_size_diff_type_conversion )
 {
     // Note that same-type/same-size is covered by the automatically-defined
@@ -803,6 +805,7 @@ BOOST_AUTO_TEST_CASE( test_same_size_diff_type_conversion )
     // conversions can get flagged as warnings.
 }
 
+// Check conversions with immediately-lower rank, any component type.
 BOOST_AUTO_TEST_CASE( test_barrage_conversion )
 {
     // Same type between barrages and composite
@@ -853,6 +856,30 @@ BOOST_AUTO_TEST_CASE( test_barrage_conversion )
 
     // Since brace-initialization is used in the implementation, narrowing
     // conversions can get flagged as warnings.
+}
+
+// Check conversions with severely-lower rank, any component type.
+BOOST_AUTO_TEST_CASE( test_subbarrage_conversion )
+{
+    // Same type between pieces and whole
+    complex_rt<int, 0> const  qc[] = { {2}, {-3}, {5}, {-7} };
+    complex_rt<int, 2> const  q = { qc[0], qc[1], qc[2], qc[3] };
+    complex_rt<int, 0> const  oc[] = { {11}, {-13}, {17}, {-19} };
+    complex_rt<int, 3> const  o = { qc[0], qc[1], qc[2], qc[3], oc[0], oc[1],
+     oc[2], oc[3] };
+
+    BOOST_CHECK_EQUAL( q, (decltype(q){2, -3, 5, -7}) );
+    BOOST_CHECK_EQUAL( o, (decltype(o){2, -3, 5, -7, 11, -13, 17, -19}) );
+
+    // Differing types
+    complex_rt<long, 1> const       xc1[] = { {23L, -29L}, {31L, -37L} };
+    complex_rt<int, 1> const        xc2[] = { {-41, 43}, {47, -53} };
+    complex_rt<long long, 3> const  x = { xc1[0], xc2[1], xc2[0], xc1[1] };
+    complex_rt<long, 3> const       y = { xc2[1] };
+
+    BOOST_CHECK_EQUAL( x, (decltype(x){23LL, -29LL, 47LL, -53LL, -41LL, 43LL,
+     31LL, -37LL}) );
+    BOOST_CHECK_EQUAL( y, (decltype(y){47L, -53L, 0L}) );
 }
 
 BOOST_AUTO_TEST_SUITE_END()  // constructor_tests

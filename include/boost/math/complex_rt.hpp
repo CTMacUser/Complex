@@ -133,7 +133,7 @@ struct complex_rt< Number, 0u >
     /** \brief  Convert from a `complex_rt`, same #rank, different #value_type
 
     Constructs a `complex_rt` object from one with a different #value_type, but
-    the same #rank.
+    the same #rank.  Acts as a conversion.
 
         \pre  The component type for `s` has to be implicitly convertible to
               #value_type.
@@ -302,7 +302,7 @@ struct complex_rt
     /** \brief  Convert from a `complex_rt`, same #rank, different #value_type
 
     Constructs a `complex_rt` object from one with a different #value_type, but
-    the same #rank.
+    the same #rank.  Acts as a conversion.
 
         \pre  The component type for `s` has to be implicitly convertible to
               #value_type.
@@ -318,7 +318,7 @@ struct complex_rt
     /** \brief  Convert from one or two barrages.
 
     Constructs a `complex_rt` from one or two barrages.  It is not required that
-    one or both barrages share #value_type.
+    one or both barrages share #value_type.  Can act as a conversion.
 
         \pre  The component types for `l` and `u` each have to be implicitly
               convertible to #value_type.
@@ -333,6 +333,46 @@ struct complex_rt
     template < typename T, typename U = value_type >
     constexpr  complex_rt( complex_rt<T, rank - 1u> const &l,
      complex_rt<U, rank - 1u> const &u = {} )  : b{ l, u }  {}
+    /** \brief  Convert from list of sub-barrages.
+
+    Constructs a `complex_rt` from one or more `complex_rt` objects that are
+    smaller than `barrage_type`.  It is not required that the sub-barrages share
+    #value_type, nor use the same component type among themselves.  Can act as a
+    conversion.
+
+        \pre  The component types for `first` and each `rest` all have to be
+              implicitly convertible to #value_type.
+        \pre  The total number of components from `first` and each `rest`
+              combined cannot exceed #static_size.
+
+        \param[in] first  The first set of components to copy.
+        \param[in] rest   The remaining sets of components to copy.  May be
+                          empty.
+
+        \post  Given `auto const x = std::tuple_cat(first, rest...);` and `using
+               TT = decltype(x);`:
+               - For `0 <= k < Min(static_size, std::tuple_size<TT>::value)`,
+                 `get<k>(*this) == get<k>(x)`.
+               - For `std::tuple_size<TT>::value <= k < static_size`,
+                 `get<k>(*this) == value_type{}`.
+     */
+    template <
+        typename    T,
+        size_type   R,
+        typename ...U,
+        typename      = typename std::enable_if<(R < rank - 1u)>::type,
+        typename      = typename std::enable_if<((1u + sizeof...( U )) <= (1ULL
+         << ( rank - R )))>::type
+    >
+    complex_rt( complex_rt<T, R> const &first, complex_rt<U, R> const &...rest )
+#if 0
+        : complex_rt{ std::integral_constant<size_type, 0u>{}, first, rest... }
+    {}
+#else
+        : complex_rt{ complex_it<value_type, rank>{static_cast<complex_it<T,
+          R>>(first), static_cast<complex_it<U, R>>(rest)...} }
+    {}
+#endif
 
     /** \brief  Convert from a `complex_it`.
 
@@ -382,7 +422,7 @@ struct complex_rt
     }
 
 private:
-    // Authorize use of hidden constructor below for complex_rt<Number, Rank+1u>
+    // Authorize use of hidden constructors below for complex_rt<Number,Rank+1u>
     friend class complex_rt<value_type, rank + 1u>;
 
     // Hidden constructor to take specific components from a complex_it object.
@@ -394,6 +434,61 @@ private:
           barrage_type{std::integral_constant<size_type, Start + static_size /
           2u>{}, c} }
     {}
+
+#if 0
+    // Hidden constructor to value-initialize when sources run dry early.
+    template < size_type Start >
+    explicit constexpr
+    complex_rt( std::integral_constant<size_type, Start> )  : b{}  {}
+
+    // Hidden constructor to take the first barrage coming.
+    template < typename T >
+    explicit constexpr
+    complex_rt( std::integral_constant<size_type, 0u>, complex_rt<T, rank - 1u>
+     const &first )  : b{ first }  {}
+
+    // Hidden constructor to take the first two barrages coming.
+    template < typename T, typename U, typename ...V >
+    explicit constexpr
+    complex_rt( std::integral_constant<size_type, 0u>,
+     complex_rt<T, rank - 1u> const &first,
+     complex_rt<U, rank - 1u> const &second,
+     complex_rt<V, rank - 1u> const &... )
+        : b{ first, second }
+    {}
+
+    // Hidden constructor to take the first sub-barrages coming.
+    template <
+        typename    T,
+        size_type   R,
+        typename ...U,
+        typename      = typename std::enable_if<(R < rank - 1u)>::type
+    >
+    explicit constexpr
+    complex_rt( std::integral_constant<size_type, 0u>,
+     complex_rt<T, R> const &first,
+     complex_rt<U, R> const &...rest )
+        : b{ barrage_type{std::integral_constant<size_type, 0u>{}, first,
+          rest...}, barrage_type{std::integral_constant<size_type, static_size /
+          2u>{}, first, rest...} }
+    {}
+
+    // Hidden constructor to take non-initial sub-barrages.
+    template <
+        size_type   Start,
+        typename    T,
+        size_type   R,
+        typename ...U,
+        typename      = typename std::enable_if<(Start >= (1ULL << R))>::type
+    >
+    explicit constexpr
+    complex_rt( std::integral_constant<size_type, Start>,
+     complex_rt<T, R> const &first,
+     complex_rt<U, R> const &...rest )
+        : complex_rt{ std::integral_constant<size_type, Start - (1ULL << R)>{},
+          rest... }
+    {}
+#endif
 
     // Member data
     barrage_type  b[ 2 ];
