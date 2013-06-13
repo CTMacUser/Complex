@@ -263,6 +263,26 @@ struct complex_it
     >
     complex_it( complex_it<T, R> const &first, complex_it<U, R> const &...rest )
     { copy_barrages(0u, first, rest...); }
+    /** \brief  Convert from a longer `complex_it` object.
+
+    Constructs a `complex_it` from the first (i.e. real-ward) components of an
+    object with a higher #rank.  The conversion is `explicit` to prevent
+    ambiguities with the non-longer conversion constructor.
+
+        \pre  The component type for `senior` has to implicitly convertible to
+              #value_type.
+
+        \param[in] senior  The source to copy.
+
+        \post  For `0 <= k <` #static_size, `(*this)[k] == senior[k]`.
+     */
+    template <
+        typename   T,
+        size_type  R,
+        typename     = typename std::enable_if<(R > rank)>::type
+    >
+    explicit  complex_it( complex_it<T, R> const &senior )
+    { std::copy(&senior[ 0 ], &senior[ static_size ], &c[ 0 ]); }
 
 private:
     // Implements the cross-copy/barrage/sub-barrage constructor, base case

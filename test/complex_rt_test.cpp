@@ -883,6 +883,45 @@ BOOST_AUTO_TEST_CASE( test_subbarrage_conversion )
     BOOST_CHECK_EQUAL( y, (decltype(y){47L, -53L, 0L}) );
 }
 
+// Check conversions with a greater rank, any component type.
+BOOST_AUTO_TEST_CASE( test_supersize_conversion )
+{
+    // Integer
+    complex_rt<int, 3> const        o = { -2, 3, -5, 7, -11, 13, -17, 19 };
+    complex_rt<int, 2> const        q1{ o };
+    complex_rt<long, 2> const       q2{ o };
+    complex_rt<long, 1> const       c1{ o };
+    complex_rt<int, 1> const        c2{ q1 };
+    complex_rt<long long, 0> const  r1{ o };
+    complex_rt<int, 0> const        r2{ o };
+
+    BOOST_CHECK_EQUAL( q1[0], o[0] );
+    BOOST_CHECK_EQUAL( q1[1], o[1] );
+    BOOST_CHECK_EQUAL( q1[2], o[2] );
+    BOOST_CHECK_EQUAL( q1[3], o[3] );
+    BOOST_CHECK_EQUAL( q2, (decltype(q2){-2L, 3L, -5L, 7L}) );
+    BOOST_CHECK_EQUAL( c1, (decltype(c1){-2L, 3L}) );
+    BOOST_CHECK_EQUAL( c2, (decltype(c2){-2, 3}) );
+    BOOST_CHECK_EQUAL( r1[0], -2LL );
+    BOOST_CHECK_EQUAL( r2[0], -2 );
+
+    // Floating
+    complex_rt<float, 2> const        q = { -23.3f, +29.9f, -31.1f };
+    complex_rt<double, 1> const       c3{ q };
+    complex_rt<float, 1> const        c4{ q };
+    complex_rt<float, 0> const        r3{ q };
+    complex_rt<long double, 0> const  r4{ q };
+    complex_rt<double, 0> const       r5{ c3 };
+
+    BOOST_CHECK_CLOSE( c3[0], -23.3, 0.1 );
+    BOOST_CHECK_CLOSE( c3[1], +29.9, 0.1 );
+    BOOST_CHECK_CLOSE( c4[0], -23.3f, 0.1 );
+    BOOST_CHECK_CLOSE( c4[1], +29.9f, 0.1 );
+    BOOST_CHECK_CLOSE( r3[0], -23.3f, 0.1 );
+    BOOST_CHECK_CLOSE( r4[0], -23.3L, 0.1 );
+    BOOST_CHECK_CLOSE( r5[0], -23.3, 0.1 );
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // constructor_tests
 
 BOOST_AUTO_TEST_SUITE( tuple_tests )

@@ -145,6 +145,27 @@ struct complex_rt< Number, 0u >
      */
     template < typename T >
     constexpr  complex_rt( complex_rt<T, rank> const &s )  : r{ s[0] }  {}
+    /** \brief  Convert from a longer `complex_rt` object.
+
+    Constructs a `complex_rt` from the first (i.e. real) component of an
+    object with a higher #rank.  The conversion is `explicit` to prevent
+    ambiguities with the same-length conversion constructor.
+
+        \pre  The component type for `senior` has to implicitly convertible to
+              #value_type.
+
+        \param[in] senior  The source to copy.
+
+        \post  `(*this)[0] == senior[0]`.
+     */
+    template <
+        typename   T,
+        size_type  R,
+        typename     = typename std::enable_if<R>::type
+    >
+    explicit constexpr  complex_rt( complex_rt<T, R> const &senior )
+        : r{ senior[0] }
+    {}
 
     /** \brief  Convert from a `complex_it`.
 
@@ -364,6 +385,9 @@ struct complex_rt
         typename      = typename std::enable_if<((1u + sizeof...( U )) <= (1ULL
          << ( rank - R )))>::type
     >
+#if 0
+    constexpr
+#endif
     complex_rt( complex_rt<T, R> const &first, complex_rt<U, R> const &...rest )
 #if 0
         : complex_rt{ std::integral_constant<size_type, 0u>{}, first, rest... }
@@ -373,6 +397,27 @@ struct complex_rt
           R>>(first), static_cast<complex_it<U, R>>(rest)...} }
     {}
 #endif
+    /** \brief  Convert from a longer `complex_rt` object.
+
+    Constructs a `complex_rt` from the first (i.e. real-ward) components of an
+    object with a higher #rank.  The conversion is `explicit` to prevent
+    ambiguities with the same-length and (sub-)barrage conversion constructors.
+
+        \pre  The component type for `senior` has to implicitly convertible to
+              #value_type.
+
+        \param[in] senior  The source to copy.
+
+        \post  For `0 <= k <` #static_size, `(*this)[k] == senior[k]`.
+     */
+    template <
+        typename   T,
+        size_type  R,
+        typename     = typename std::enable_if<(R > rank)>::type
+    >
+    explicit constexpr  complex_rt( complex_rt<T, R> const &senior )
+        : complex_rt{ senior.lower_barrage() }
+    {}
 
     /** \brief  Convert from a `complex_it`.
 
