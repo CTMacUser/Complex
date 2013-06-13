@@ -531,13 +531,13 @@ BOOST_AUTO_TEST_SUITE( constructor_tests )
 BOOST_AUTO_TEST_CASE_TEMPLATE( test_default_real_construction, T, test_types )
 {
     // Real
-    complex_rt<T, 0>  a{}, b{ (T)2 };
+    complex_rt<T, 0>  a = {}, b = { (T)2 };
 
     BOOST_CHECK_EQUAL( a[0], T{} );
     BOOST_CHECK_EQUAL( b[0], T(2) );
 
     // (Regular) complex
-    complex_rt<T, 1>  c{}, d{ (T)7 };
+    complex_rt<T, 1>  c = {}, d = { (T)7 };
 
     BOOST_CHECK_EQUAL( c[0], T{} );
     BOOST_CHECK_EQUAL( c[1], T{} );
@@ -545,7 +545,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_default_real_construction, T, test_types )
     BOOST_CHECK_EQUAL( d[1], T{} );
 
     // Quaternions
-    complex_rt<T, 2>  e{}, f{ (T)19 };
+    complex_rt<T, 2>  e = {}, f = { (T)19 };
 
     BOOST_CHECK_EQUAL( e[0], T{} );
     BOOST_CHECK_EQUAL( e[1], T{} );
@@ -557,7 +557,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_default_real_construction, T, test_types )
     BOOST_CHECK_EQUAL( f[3], T{} );
 
     // Octonions
-    complex_rt<T, 3>  g{}, h{ (T)101 };
+    complex_rt<T, 3>  g = {}, h = { (T)101 };
 
     BOOST_CHECK_EQUAL( g[0], T{} );
     BOOST_CHECK_EQUAL( g[1], T{} );
@@ -669,13 +669,14 @@ BOOST_AUTO_TEST_CASE( test_cross_philosophy_construction )
 BOOST_AUTO_TEST_CASE_TEMPLATE( test_multireal_construction, T, test_types )
 {
     // (Regular) complex
-    complex_rt<T, 1> const  a{ (T)2, (T)3 };
+    complex_rt<T, 1> const  a = { (T)2, (T)3 };
 
     BOOST_CHECK_EQUAL( a[0], T(2) );
     BOOST_CHECK_EQUAL( a[1], T(3) );
 
     // Quaternions
-    complex_rt<T, 2> const  b{ (T)5, (T)7 }, c{ (T)11, (T)13, (T)17, (T)19 };
+    complex_rt<T, 2> const  b = { (T)5, (T)7 }, c = { (T)11, (T)13, (T)17,
+     (T)19 };
 
     BOOST_CHECK_EQUAL( b[0], T(5) );
     BOOST_CHECK_EQUAL( b[1], T(7) );
@@ -783,18 +784,18 @@ BOOST_AUTO_TEST_CASE( test_same_size_diff_type_conversion )
     // templates (such as the ones used here).
 
     // Reals
-    complex_rt<unsigned, 0> const  a{ complex_rt<unsigned char, 0>{'\0'} };
+    complex_rt<unsigned, 0> const  a = { complex_rt<unsigned char, 0>{'\0'} };
 
     BOOST_CHECK_EQUAL( a[0], 0u );
 
     // (Regular) Complexes
-    complex_rt<long, 1> const  b{ complex_rt<int, 1>{-2, +3} };
+    complex_rt<long, 1> const  b = { complex_rt<int, 1>{-2, +3} };
 
     BOOST_CHECK_EQUAL( b[0], -2L );
     BOOST_CHECK_EQUAL( b[1], +3L );
 
     // Quaternions
-    complex_rt<double, 2> const  c{ complex_rt<float,2>{+5.5f, -7.0f, +11.0f} };
+    complex_rt<double,2> const  c = {complex_rt<float,2>{+5.5f, -7.0f, +11.0f}};
 
     BOOST_CHECK_CLOSE( c[0], +5.5, 0.1 );
     BOOST_CHECK_CLOSE( c[1], -7.0, 0.1 );
@@ -809,10 +810,10 @@ BOOST_AUTO_TEST_CASE( test_same_size_diff_type_conversion )
 BOOST_AUTO_TEST_CASE( test_barrage_conversion )
 {
     // Same type between barrages and composite
-    complex_rt<int, 0> const     a1{ 2 }, a2{ -3 };
-    complex_rt<int, 1> const     a{ a1, a2 };
-    complex_rt<double, 1> const  b1{ -5.5 }, b2{ +7.1, -11.3 };
-    complex_rt<double, 2> const  b{ b1, b2 };
+    complex_rt<int, 0> const     a1 = { 2 }, a2 = { -3 };
+    complex_rt<int, 1> const     a = { a1, a2 };
+    complex_rt<double, 1> const  b1 = { -5.5 }, b2 = { +7.1, -11.3 };
+    complex_rt<double, 2> const  b = { b1, b2 };
 
     BOOST_CHECK_EQUAL( a[0], a1[0] );
     BOOST_CHECK_EQUAL( a[1], a2[0] );
@@ -823,8 +824,8 @@ BOOST_AUTO_TEST_CASE( test_barrage_conversion )
     BOOST_CHECK_CLOSE( b[3], b2[1], 0.1 );
 
     // Only one barrage
-    complex_rt<int, 1> const     aa{ a2 };
-    complex_rt<double, 2> const  bb{ b1 };
+    complex_rt<int, 1> const     aa = { a2 };
+    complex_rt<double, 2> const  bb = { b1 };
 
     BOOST_CHECK_EQUAL( aa[0], a2[0] );
     BOOST_CHECK_EQUAL( aa[1], 0 );
@@ -835,9 +836,9 @@ BOOST_AUTO_TEST_CASE( test_barrage_conversion )
     BOOST_CHECK_CLOSE( bb[3], 0.0, 0.1 );
 
     // Mixed types
-    complex_rt<long, 1> const         c{ complex_rt<int, 0>{-13},
+    complex_rt<long, 1> const         c = { complex_rt<int, 0>{-13},
      complex_rt<long, 0>{17L} };
-    complex_rt<long double, 2> const  d{ complex_rt<float, 1>{-19.4f},
+    complex_rt<long double, 2> const  d = { complex_rt<float, 1>{-19.4f},
      complex_rt<double, 1>{23.0, -29.8} };
 
     BOOST_CHECK_EQUAL( c[0], -13L );
@@ -849,7 +850,7 @@ BOOST_AUTO_TEST_CASE( test_barrage_conversion )
     BOOST_CHECK_CLOSE( d[3], -29.8L, 0.1 );
 
     // One mixed barrage
-    complex_rt<short, 1> const  e{ complex_rt<char, 0>{125} };
+    complex_rt<short, 1> const  e = { complex_rt<char, 0>{125} };
 
     BOOST_CHECK_EQUAL( e[0], 125 );
     BOOST_CHECK_EQUAL( e[1], 0 );
