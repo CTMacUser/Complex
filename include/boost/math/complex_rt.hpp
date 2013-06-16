@@ -32,6 +32,7 @@
 #include <sstream>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 #include "boost/math/complex_it.hpp"
 
@@ -630,6 +631,48 @@ template < typename Number, std::size_t Rank >
 constexpr
 typename complex_rt<Number, Rank>::size_type
   complex_rt<Number, Rank>::static_size;
+
+
+//  Object support functions  ------------------------------------------------//
+
+/** \brief  Swap routine for `complex_rt`.
+
+Exchanges the state of the two given objects.
+
+    \relatesalso  #boost::math::complex_rt
+
+    \pre  There is a swapping routine, called `swap`, either in namespace `std`
+          for built-ins, or found via ADL for other types.
+
+    \param a  The first object to have its state exchanged.
+    \param b  The second object to have its state exchanged.
+
+    \throws Whatever  the element-level swap does.
+
+    \post  `a` is equivalent to the old state of `b`, while `b` is equivalent to
+           the old state of `a`.
+ */
+template < typename T >
+inline
+void  swap( complex_rt<T, 0u> &a, complex_rt<T, 0u> &b )
+ noexcept( detail::is_swap_nothrow<T>() )
+{
+    using std::swap;
+
+    swap( a[0], b[0] );
+}
+
+/** \overload
+    \relatesalso  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline
+void  swap( complex_rt<T, R> &a, complex_rt<T, R> &b )
+ noexcept( detail::is_swap_nothrow<T>() )
+{
+    swap( a.lower_barrage(), b.lower_barrage() );
+    swap( a.upper_barrage(), b.upper_barrage() );
+}
 
 
 //  Equality operators  ------------------------------------------------------//

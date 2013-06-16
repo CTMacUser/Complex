@@ -34,6 +34,7 @@
 #include <sstream>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 // Put includes from Boost here.
 
@@ -358,7 +359,26 @@ typename complex_it<Number, Rank>::size_type
   complex_it<Number, Rank>::static_size;
 
 
-//  Range-for support functions  ---------------------------------------------//
+//  Implementation details  --------------------------------------------------//
+
+//! \cond
+namespace detail
+{
+    //! Detect if a type's swap (found via ADL for non-built-ins) throws.
+    template < typename T, typename U = T >
+    inline constexpr
+    bool  is_swap_nothrow() noexcept
+    {
+        using std::swap;
+
+        return noexcept( swap(std::declval<T &>(), std::declval<U &>()) );
+    }
+
+}  // namespace detail
+//! \endcond
+
+
+//  Object support functions  ------------------------------------------------//
 
 /** \brief  Forward iteration over components, start point
 
@@ -422,6 +442,29 @@ template < typename T, std::size_t R >
 inline
 auto  end( complex_it<T, R> &c ) noexcept -> T *
 { return begin(c) + complex_it<T, R>::static_size; }
+
+/** \brief  Swap routine for `complex_it`.
+
+Exchanges the state of the two given objects.
+
+    \relatesalso  #boost::math::complex_it
+
+    \pre  There is a swapping routine, called `swap`, either in namespace `std`
+          for built-ins, or found via ADL for other types.
+
+    \param a  The first object to have its state exchanged.
+    \param b  The second object to have its state exchanged.
+
+    \throws Whatever  the element-level swap does.
+
+    \post  `a` is equivalent to the old state of `b`, while `b` is equivalent to
+           the old state of `a`.
+ */
+template < typename T, std::size_t R >
+inline
+void  swap( complex_it<T, R> &a, complex_it<T, R> &b )
+ noexcept( detail::is_swap_nothrow<T>() )
+{ std::swap_ranges(begin( a ), end( a ), begin( b )); }
 
 
 //  Equality operators  ------------------------------------------------------//

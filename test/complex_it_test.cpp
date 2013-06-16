@@ -816,6 +816,37 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_explicit_conversions, T, test_types )
 
 BOOST_AUTO_TEST_SUITE_END()  // constructor_tests
 
+BOOST_AUTO_TEST_SUITE( operation_tests )
+
+// Check the swapping of states.
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_swap, T, test_types )
+{
+    // Reals
+    complex_it<T, 0>  a = { (T)2 }, b = { (T)3 };
+
+    BOOST_CHECK_EQUAL( a[0], T(2) );
+    BOOST_CHECK_EQUAL( b[0], T(3) );
+    swap( a, b );
+    BOOST_CHECK_EQUAL( a[0], T(3) );
+    BOOST_CHECK_EQUAL( b[0], T(2) );
+
+    // Quaternions
+    complex_it<T, 2>  c = { (T)5, (T)7, (T)11, (T)13 };
+    complex_it<T, 2>  d = { (T)17, (T)19, (T)23 };
+
+    swap( c, d );
+    BOOST_CHECK_EQUAL( c[0], T(17) );
+    BOOST_CHECK_EQUAL( c[1], T(19) );
+    BOOST_CHECK_EQUAL( c[2], T(23) );
+    BOOST_CHECK_EQUAL( c[3], T{} );
+    BOOST_CHECK_EQUAL( d[0], T(5) );
+    BOOST_CHECK_EQUAL( d[1], T(7) );
+    BOOST_CHECK_EQUAL( d[2], T(11) );
+    BOOST_CHECK_EQUAL( d[3], T(13) );
+}
+
+BOOST_AUTO_TEST_SUITE_END()  // operation_tests
+
 BOOST_AUTO_TEST_SUITE( tuple_tests )
 
 // Check the various compile-time tuple descriptors.
