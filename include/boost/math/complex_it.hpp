@@ -467,6 +467,42 @@ void  swap( complex_it<T, R> &a, complex_it<T, R> &b )
 { std::swap_ranges(begin( a ), end( a ), begin( b )); }
 
 
+//  Tuple interface functions  -----------------------------------------------//
+
+/** \brief  Accesses a component of a `complex_it`.
+
+Extracts the given component of the given complex number object.
+
+    \pre  0 \<= *I* \< #boost::math::complex_it::static_size.
+
+    \tparam I  The index of the desired component.
+
+    \param c  The complex number object containing the component.
+
+    \returns  A reference to the desired component.
+ */
+template < std::size_t I, typename T, std::size_t R >
+inline constexpr
+auto  get( complex_it<T, R> const &c ) noexcept -> T const &
+{
+    static_assert( I < complex_it<T, R>::static_size, "Index too large" );
+
+    return c[ I ];
+}
+
+//! \overload
+template < std::size_t I, typename T, std::size_t R >
+inline
+auto  get( complex_it<T, R> &c ) noexcept -> T &
+{ return const_cast<T &>(get<I>( const_cast<complex_it<T,R> const &>(c) )); }
+
+//! \overload
+template < std::size_t I, typename T, std::size_t R >
+inline
+auto  get( complex_it<T, R> &&c ) noexcept -> T &&
+{ return std::forward<T>(get<I>( c )); }
+
+
 //  Equality operators  ------------------------------------------------------//
 
 /** \brief  Inequality comparison for `complex_it`.

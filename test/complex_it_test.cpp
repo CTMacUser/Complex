@@ -915,6 +915,38 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_tuple_support, T, test_types )
 #endif
 }
 
+// Check the tuple access functions.
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_tuple_get, T, test_types )
+{
+    // Need to bring this into scope.
+    using boost::math::get;
+
+    // Reals
+    complex_it<T, 0>           a = { (T)2 };
+    complex_it<T, 0> const &  aa = a;
+
+    BOOST_CHECK_EQUAL( get<0>(a), T(2) );
+    get<0>( a ) = get<0>( complex_it<T, 0>{(T)3} );
+    BOOST_CHECK_EQUAL( T(3), get<0>(aa) );
+
+    // Quaternions
+    complex_it<T, 2>           b = { (T)5, (T)7, (T)11, (T)13 };
+    complex_it<T, 2> const &  bb = b;
+
+    BOOST_CHECK_EQUAL( get<0>(b), T(5) );
+    BOOST_CHECK_EQUAL( get<1>(b), T(7) );
+    BOOST_CHECK_EQUAL( get<2>(b), T(11) );
+    BOOST_CHECK_EQUAL( get<3>(b), T(13) );
+    get<0>( b ) = get<0>( complex_it<T, 1>{(T)17, (T)8} );
+    get<1>( b ) = get<1>( complex_it<T, 1>{(T)9, (T)19} );
+    get<2>( b ) = get<2>( complex_it<T, 2>{(T)1, (T)6, (T)23} );
+    get<3>( b ) = get<3>( complex_it<T, 3>{a} );
+    BOOST_CHECK_EQUAL( T(17), get<0>(bb) );
+    BOOST_CHECK_EQUAL( T(19), get<1>(bb) );
+    BOOST_CHECK_EQUAL( T(23), get<2>(bb) );
+    BOOST_CHECK_EQUAL( T{}, get<3>(bb) );
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // tuple_tests
 
 BOOST_AUTO_TEST_SUITE_END()  // complex_it_tests
