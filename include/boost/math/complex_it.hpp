@@ -259,7 +259,9 @@ struct complex_it
         typename ...U,
         typename      = typename std::enable_if<(R <= rank)>::type,
         typename      = typename std::enable_if<((1u + sizeof...( U )) <= (1ULL
-         << ( rank - R )))>::type
+         << ( rank - R )))>::type,
+        typename      = typename std::enable_if<std::is_convertible<T,
+         value_type>::value>::type
     >
     complex_it( complex_it<T, R> const &first, complex_it<U, R> const &...rest )
     { copy_barrages(0u, first, rest...); }
@@ -279,10 +281,41 @@ struct complex_it
     template <
         typename   T,
         size_type  R,
-        typename     = typename std::enable_if<(R > rank)>::type
+        typename     = typename std::enable_if<(R > rank)>::type,
+        typename     = typename std::enable_if<std::is_convertible<T,
+         value_type>::value>::type
     >
     explicit  complex_it( complex_it<T, R> const &senior )
     { std::copy(&senior[ 0 ], &senior[ static_size ], &c[ 0 ]); }
+    /** \brief  Convert from `complex_it` objects with explicitly-convertible
+                component types.
+
+    Constructs a `complex_it` from the components of another object, but the
+    respective component types are *not* implicitly convertible.  Obviously,
+    the composite-level constructor is also `explicit`.
+
+        \pre  The component type for `cc` has to be explicitly convertible to
+              #value_type.
+
+        \param[in] cc  The source to copy.
+
+        \post  For `0 <= k < Min(static_size, decltype(cc)::static_size)`,
+               `(*this)[k] == static_cast<value_type>(cc[k])`.
+        \post  For `decltype(cc)::static_size <= k <` #static_size,
+               `(*this)[k] == value_type{}`.
+     */
+    template <
+        typename   T,
+        size_type  R,
+        typename     = typename std::enable_if<not std::is_convertible<T,
+         value_type>::value>::type
+    >
+    explicit  complex_it( complex_it<T, R> const &cc )
+        : c{}
+    {
+        std::transform( &cc[0], &cc[1ULL << std::min( rank, R )], &c[0],
+         [](T const &t){return static_cast<value_type>( t );} );
+    }
 
 private:
     // Implements the cross-copy/barrage/sub-barrage constructor, base case

@@ -143,7 +143,11 @@ struct complex_rt< Number, 0u >
         \post  `(*this)[0] == s[0]`.
 
      */
-    template < typename T >
+    template <
+        typename  T,
+        typename    = typename std::enable_if<std::is_convertible<T,
+         value_type>::value>::type
+    >
     constexpr  complex_rt( complex_rt<T, rank> const &s )  : r{ s[0] }  {}
     /** \brief  Convert from a longer `complex_rt` object.
 
@@ -161,10 +165,35 @@ struct complex_rt< Number, 0u >
     template <
         typename   T,
         size_type  R,
-        typename     = typename std::enable_if<R>::type
+        typename     = typename std::enable_if<R>::type,
+        typename     = typename std::enable_if<std::is_convertible<T,
+         value_type>::value>::type
     >
     explicit constexpr  complex_rt( complex_rt<T, R> const &senior )
         : r{ senior[0] }
+    {}
+    /** \brief  Convert from a `complex_rt` object with explicitly-convertible
+                component types.
+
+    Constructs a `complex_rt` from the components of another object, but the
+    respective component types are *not* implicitly convertible.  Obviously,
+    the composite-level constructor is also `explicit`.
+
+        \pre  The component type for `cc` has to be explicitly convertible to
+              #value_type.
+
+        \param[in] cc  The source to copy.
+
+        \post  `(*this)[0] == static_cast<value_type>(cc[0])`.
+     */
+    template <
+        typename   T,
+        size_type  R,
+        typename     = typename std::enable_if<not std::is_convertible<T,
+         value_type>::value>::type
+    >
+    explicit  complex_rt( complex_rt<T, R> const &cc )
+        : r{ static_cast<value_type>(cc[ 0 ]) }
     {}
 
     /** \brief  Convert from a `complex_it`.
@@ -300,7 +329,7 @@ struct complex_rt
     constexpr  complex_rt( value_type const &r )  : b{ {r} }  {}
     /** \brief  List-of-reals constructor
 
-    Constucts a `complex_rt` object from a list of real numbers.
+    Constructs a `complex_rt` object from a list of real numbers.
 
         \pre  `sizeof...(u)` \<= #static_size - 2.
         \pre  Each parameter in `u` must have a (non-narrowing) implicit
@@ -318,7 +347,10 @@ struct complex_rt
      */
     template < typename ...Args >
     constexpr  complex_rt( value_type const &r, value_type const &i, Args const
-     &...u )  : complex_rt{ complex_it<value_type, rank>{r, i, u...} }  {}
+     &...u )
+        : complex_rt{ complex_rt<value_type, 0u>{r}, complex_rt<value_type,
+          0u>{i}, complex_rt<Args, 0u>{u}... }
+    {}
 
     /** \brief  Convert from a `complex_rt`, same #rank, different #value_type
 
@@ -332,7 +364,11 @@ struct complex_rt
 
         \post  `(*this)[k] == s[k]` for all valid indices `k`.
      */
-    template < typename T >
+    template <
+        typename  T,
+        typename    = typename std::enable_if<std::is_convertible<T,
+         value_type>::value>::type
+    >
     constexpr  complex_rt( complex_rt<T, rank> const &s )
         : b{ s.lower_barrage(), s.upper_barrage() }
     {}
@@ -351,7 +387,14 @@ struct complex_rt
         \post  `this->lower_barrage() == l`.
         \post  `this->upper_barrage() == u`.
      */
-    template < typename T, typename U = value_type >
+    template <
+        typename  T,
+        typename  U = value_type,
+        typename    = typename std::enable_if<std::is_convertible<T,
+         value_type>::value>::type,
+        typename    = typename std::enable_if<std::is_convertible<U,
+         value_type>::value>::type
+    >
     constexpr  complex_rt( complex_rt<T, rank - 1u> const &l,
      complex_rt<U, rank - 1u> const &u = {} )  : b{ l, u }  {}
     /** \brief  Convert from list of sub-barrages.
@@ -383,20 +426,14 @@ struct complex_rt
         typename ...U,
         typename      = typename std::enable_if<(R < rank - 1u)>::type,
         typename      = typename std::enable_if<((1u + sizeof...( U )) <= (1ULL
-         << ( rank - R )))>::type
+         << ( rank - R )))>::type,
+        typename      = typename std::enable_if<std::is_convertible<T,
+         value_type>::value>::type
     >
-#if 0
     constexpr
-#endif
     complex_rt( complex_rt<T, R> const &first, complex_rt<U, R> const &...rest )
-#if 0
         : complex_rt{ std::integral_constant<size_type, 0u>{}, first, rest... }
     {}
-#else
-        : complex_rt{ complex_it<value_type, rank>{static_cast<complex_it<T,
-          R>>(first), static_cast<complex_it<U, R>>(rest)...} }
-    {}
-#endif
     /** \brief  Convert from a longer `complex_rt` object.
 
     Constructs a `complex_rt` from the first (i.e. real-ward) components of an
@@ -413,11 +450,44 @@ struct complex_rt
     template <
         typename   T,
         size_type  R,
-        typename     = typename std::enable_if<(R > rank)>::type
+        typename     = typename std::enable_if<(R > rank)>::type,
+        typename     = typename std::enable_if<std::is_convertible<T,
+         value_type>::value>::type
     >
     explicit constexpr  complex_rt( complex_rt<T, R> const &senior )
         : complex_rt{ senior.lower_barrage() }
     {}
+    /** \brief  Convert from `complex_rt` objects with explicitly-convertible
+                component types.
+
+    Constructs a `complex_rt` from the components of another object, but the
+    respective component types are *not* implicitly convertible.  Obviously,
+    the composite-level constructor is also `explicit`.
+
+        \pre  The component type for `cc` has to be explicitly convertible to
+              #value_type.
+
+        \param[in] cc  The source to copy.
+
+        \post  For `0 <= k < Min(static_size, decltype(cc)::static_size)`,
+               `(*this)[k] == static_cast<value_type>(cc[k])`.
+        \post  For `decltype(cc)::static_size <= k <` #static_size,
+               `(*this)[k] == value_type{}`.
+     */
+    template <
+        typename   T,
+        size_type  R,
+        typename     = typename std::enable_if<not std::is_convertible<T,
+         value_type>::value>::type
+    >
+    explicit  complex_rt( complex_rt<T, R> const &cc )
+        : b{}
+    {
+        auto  i = 1ULL << std::min( rank, R );
+
+        while ( i-- )
+            ( *this )[ i ] = static_cast<value_type>( cc[i] );
+    }
 
     /** \brief  Convert from a `complex_it`.
 
@@ -480,7 +550,6 @@ private:
           2u>{}, c} }
     {}
 
-#if 0
     // Hidden constructor to value-initialize when sources run dry early.
     template < size_type Start >
     explicit constexpr
@@ -488,13 +557,13 @@ private:
 
     // Hidden constructor to take the first barrage coming.
     template < typename T >
-    explicit constexpr
+    explicit //constexpr
     complex_rt( std::integral_constant<size_type, 0u>, complex_rt<T, rank - 1u>
      const &first )  : b{ first }  {}
 
     // Hidden constructor to take the first two barrages coming.
     template < typename T, typename U, typename ...V >
-    explicit constexpr
+    explicit //constexpr
     complex_rt( std::integral_constant<size_type, 0u>,
      complex_rt<T, rank - 1u> const &first,
      complex_rt<U, rank - 1u> const &second,
@@ -502,38 +571,31 @@ private:
         : b{ first, second }
     {}
 
-    // Hidden constructor to take the first sub-barrages coming.
-    template <
-        typename    T,
-        size_type   R,
-        typename ...U,
-        typename      = typename std::enable_if<(R < rank - 1u)>::type
-    >
-    explicit constexpr
-    complex_rt( std::integral_constant<size_type, 0u>,
-     complex_rt<T, R> const &first,
-     complex_rt<U, R> const &...rest )
-        : b{ barrage_type{std::integral_constant<size_type, 0u>{}, first,
-          rest...}, barrage_type{std::integral_constant<size_type, static_size /
-          2u>{}, first, rest...} }
-    {}
-
-    // Hidden constructor to take non-initial sub-barrages.
-    template <
-        size_type   Start,
-        typename    T,
-        size_type   R,
-        typename ...U,
-        typename      = typename std::enable_if<(Start >= (1ULL << R))>::type
-    >
+    // Hidden constructor to take the later barrages.
+    template < size_type Start, typename T, typename ...U >
     explicit constexpr
     complex_rt( std::integral_constant<size_type, Start>,
-     complex_rt<T, R> const &first,
-     complex_rt<U, R> const &...rest )
-        : complex_rt{ std::integral_constant<size_type, Start - (1ULL << R)>{},
-          rest... }
+     complex_rt<T, rank - 1u> const & ,
+     complex_rt<U, rank - 1u> const &...rest )
+        : complex_rt{ std::integral_constant<size_type, Start - static_size /
+          2u>{}, rest... }
     {}
-#endif
+
+    // Hidden constructor to handle sub-barrages.
+    template <
+        size_type    Start,
+        typename     T,
+        size_type    R,
+        typename  ...U,
+        typename       = typename std::enable_if<(R < rank - 1u)>::type
+    >
+    explicit constexpr
+    complex_rt( std::integral_constant<size_type, Start> marker, complex_rt<T,
+     R> const &first, complex_rt<U, R> const &...rest )
+        : b{ barrage_type{marker, first, rest...}, barrage_type{
+          std::integral_constant<size_type, Start + static_size / 2u>{}, first,
+          rest...} }
+    {}
 
     // Member data
     barrage_type  b[ 2 ];

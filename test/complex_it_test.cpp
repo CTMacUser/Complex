@@ -776,6 +776,44 @@ BOOST_AUTO_TEST_CASE( test_supersize_conversion )
     BOOST_CHECK_CLOSE( r5[0], -23.3, 0.1 );
 }
 
+// Check explicit-conversions with component type needing explicit conversion.
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_explicit_conversions, T, test_types )
+{
+    // Sample type needing explicit conversions
+    struct proxy
+    {
+        T  value;
+
+        proxy() = default;
+        proxy( T const &t )  : value{ t }  {}
+
+        explicit  operator T() const  { return value; }
+    };
+
+    // All reals, but one longer
+    complex_it<T, 0> const      a = { (T)2 };
+    complex_it<proxy, 0> const  b = { a };
+    complex_it<T, 0> const      c{ b };
+    complex_it<T, 3> const      o{ b };
+
+    BOOST_CHECK_EQUAL( a, c );
+    BOOST_CHECK_EQUAL( a, o );
+
+    // (Regular) complex, different-length destinations
+    complex_it<proxy, 1> const  d = { proxy((T)3), proxy((T)5) };
+    complex_it<T, 0> const      e{ d };
+    complex_it<T, 1> const      f{ d };
+    complex_it<T, 2> const      g{ d };
+
+    BOOST_CHECK_EQUAL( e[0], (T)3 );
+    BOOST_CHECK_EQUAL( f[0], (T)3 );
+    BOOST_CHECK_EQUAL( f[1], (T)5 );
+    BOOST_CHECK_EQUAL( g[0], (T)3 );
+    BOOST_CHECK_EQUAL( g[1], (T)5 );
+    BOOST_CHECK_EQUAL( g[2], T{} );
+    BOOST_CHECK_EQUAL( g[3], T{} );
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // constructor_tests
 
 BOOST_AUTO_TEST_SUITE( tuple_tests )
