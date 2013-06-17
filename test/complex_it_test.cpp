@@ -955,6 +955,46 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_member_real_imag, T, test_types )
     BOOST_CHECK_EQUAL( f[3], T{} );
 }
 
+// Check the unreal member functions.
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_member_unreal, T, test_types )
+{
+    // Reals
+    complex_it<T, 0>  a = {}, b = { (T)2 };
+
+    BOOST_CHECK_EQUAL( a.unreal(), decltype(a){} );
+    BOOST_CHECK_EQUAL( b.unreal(), decltype(b){} );
+    a.unreal( decltype(a){(T)3} );
+    b.unreal( decltype(b){(T)5} );
+    BOOST_CHECK_EQUAL( a.unreal(), decltype(a){} );
+    BOOST_CHECK_EQUAL( b.unreal(), decltype(b){} );
+    BOOST_CHECK_EQUAL( a.real(), T{} );
+    BOOST_CHECK_EQUAL( b.real(), T(2) );
+
+    // (Regular) complexes
+    complex_it<T, 1>  c = { (T)7, (T)11 }, d = { (T)13, (T)17 };
+
+    BOOST_CHECK_EQUAL( c.unreal(), (decltype( c ){ T{}, T(11) }) );
+    BOOST_CHECK_EQUAL( d.unreal(), (decltype( d ){ T{}, T(17) }) );
+    c.unreal( decltype(c){(T)19, (T)23} );
+    d.unreal( decltype(d){(T)29, (T)31} );
+    BOOST_CHECK_EQUAL( c.unreal(), (decltype( c ){ T{}, T(23) }) );
+    BOOST_CHECK_EQUAL( d.unreal(), (decltype( d ){ T{}, T(31) }) );
+    BOOST_CHECK_EQUAL( c.real(), T(7) );
+    BOOST_CHECK_EQUAL( d.real(), T(13) );
+
+    // Quaternions
+    complex_it<T, 2>  e = { (T)37, (T)41, T(43), T(47) }, f = { (T)53, (T)59 };
+
+    BOOST_CHECK_EQUAL( e.unreal(),(decltype( e ){ T{}, T(41), T(43), T(47) }) );
+    BOOST_CHECK_EQUAL( f.unreal(),(decltype( f ){ T{}, T(59) }) );
+    e.unreal( decltype(e){(T)61, (T)67, (T)71, (T)73} );
+    f.unreal( decltype(f){(T)79, (T)83, (T)87, (T)89} );
+    BOOST_CHECK_EQUAL( e.unreal(),(decltype( e ){ T{}, T(67), T(71), T(73) }) );
+    BOOST_CHECK_EQUAL( f.unreal(),(decltype( f ){ T{}, T(83), T(87), T(89) }) );
+    BOOST_CHECK_EQUAL( e.real(), T(37) );
+    BOOST_CHECK_EQUAL( f.real(), T(53) );
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // operation_tests
 
 BOOST_AUTO_TEST_SUITE( tuple_tests )

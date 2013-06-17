@@ -111,6 +111,11 @@ struct complex_rt< Number, 0u >
     //! \overload
     auto  upper_barrage() noexcept -> barrage_type &  { return *this; }
 
+    //! \copydoc  #boost::math::complex_it::unreal()const
+    constexpr  auto  unreal() const -> complex_rt  { return {}; }
+    //! \copydoc  #boost::math::complex_it::unreal(complex_it const&)
+               void  unreal( complex_rt const & )  {}
+
     // Conditions
     //! \copydoc  #boost::math::complex_it::operator bool()const
     explicit constexpr  operator bool() const  { return static_cast<bool>(r); }
@@ -315,6 +320,17 @@ struct complex_rt
     { return b[1]; }
     //! \overload
     auto  upper_barrage() noexcept -> barrage_type &  { return b[1]; }
+
+    //! \copydoc  #boost::math::complex_it::unreal()const
+    constexpr
+    auto  unreal() const -> complex_rt
+    { return {b[ 0 ].unreal(), b[ 1 ]}; }
+    //! \copydoc  #boost::math::complex_it::unreal(complex_it const&)
+    void  unreal( complex_rt const &u )
+    {
+        b[ 0 ].unreal( u.lower_barrage() );
+        b[ 1 ] = u.upper_barrage();
+    }
 
     // Conditions
     //! \copydoc  #boost::math::complex_it::operator bool()const

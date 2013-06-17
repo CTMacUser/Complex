@@ -216,6 +216,33 @@ struct complex_it
     void  upper_barrage( barrage_type const &b )
     { std::copy(&b[0 ], &b[static_size / 2u + !rank ], &c[static_size / 2u ]); }
 
+    /** \brief  Unreal-components inspector
+
+    The generalization of `imag` from regular-complex numbers to higher-level
+    hypercomplex numbers is done by considering all the non-real components at
+    once.  Since the unreal component vector has to stay a power-of-2 in length,
+    the real-component spot is zero-filled.  (This also keeps each component
+    associated with its corresponding hypercomplex unit.)
+
+        \returns  A value `y` such that:
+                  - `y[0] == value_type{}`.
+                  - For 0 \< `k` \< #static_size, `(*this)[k] == y[k]`.
+     */
+    auto  unreal() const -> complex_it
+    {
+        complex_it  result = *this;
+
+        result[ 0 ] = {};
+        return result;
+    }
+    /** \brief     Unreal-components mutator
+        \param[in] u  The new unreal component values.
+        \post      `this->unreal() == u.unreal()`.
+                   (The real parts don't change/get-copied!)
+     */
+    void  unreal( complex_it const &u )
+    { std::copy(&u[ 1 ], &u[ static_size ], &c[ 1 ]); }
+
     // Conditions
     /** \brief  Boolean conversion
 
