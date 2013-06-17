@@ -91,6 +91,13 @@ struct complex_rt< Number, 0u >
     //! \overload
     auto  operator []( size_type ) noexcept -> value_type &  { return r; }
 
+    //! \copydoc  #boost::math::complex_it::real()const
+    constexpr  auto  real() const -> value_type   { return r; }
+    //! \copydoc  #boost::math::complex_it::real(value_type const&)
+               void  real( value_type const &r )  { this->r = r; }
+    //! \copydoc  #boost::math::complex_it::imag()const
+    constexpr  auto  imag() const -> value_type   { return {}; }
+
     //! \copydoc  #boost::math::complex_it::lower_barrage
     constexpr
     auto  lower_barrage() const noexcept -> barrage_type const &
@@ -286,6 +293,15 @@ struct complex_rt
     //! \overload
     auto  operator []( size_type i ) noexcept -> value_type &
     { return (i >= static_size / 2u) ? b[1][i - static_size / 2u] : b[0][i]; }
+
+    //! \copydoc  #boost::math::complex_it::real()const
+    constexpr  auto  real() const -> value_type   { return b[0].real(); }
+    //! \copydoc  #boost::math::complex_it::real(value_type const&)
+               void  real( value_type const &r )  { b[0].real(r); }
+    //! \copydoc  #boost::math::complex_it::imag()const
+    constexpr  auto  imag() const -> value_type   { return operator[](1); }
+    //! \copydoc  #boost::math::complex_it::imag(value_type const&)
+               void  imag( value_type const &i )  { operator[](1) = i; }
 
     //! \copydoc  #boost::math::complex_it::lower_barrage
     constexpr

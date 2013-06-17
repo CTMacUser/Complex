@@ -878,6 +878,61 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_conj, T, test_types )
     BOOST_CHECK_EQUAL( ee[3], -T(19) );
 }
 
+// Check the real- and imaginary-component member functions.
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_member_real_imag, T, test_types )
+{
+    // Reals
+    complex_it<T, 0>  a = {}, b = { (T)2 };
+
+    BOOST_CHECK_EQUAL( a.real(), T{} );
+    BOOST_CHECK_EQUAL( a.imag(), T{} );
+    BOOST_CHECK_EQUAL( b.real(), T(2) );
+    BOOST_CHECK_EQUAL( b.imag(), T{} );
+    a.real( (T)3 );
+    b.real( (T)5 );
+    BOOST_CHECK_EQUAL( a.real(), T(3) );
+    BOOST_CHECK_EQUAL( a.imag(), T{} );
+    BOOST_CHECK_EQUAL( b.real(), T(5) );
+    BOOST_CHECK_EQUAL( b.imag(), T{} );
+
+    // (Regular) complexes
+    complex_it<T, 1>  c = { (T)7, (T)11 }, d = { (T)13 };
+
+    BOOST_CHECK_EQUAL( c.real(), T(7) );
+    BOOST_CHECK_EQUAL( c.imag(), T(11) );
+    BOOST_CHECK_EQUAL( d.real(), T(13) );
+    BOOST_CHECK_EQUAL( d.imag(), T{} );
+    c.real( (T)17 );
+    c.imag( (T)19 );
+    d.real( (T)23 );
+    d.imag( (T)29 );
+    BOOST_CHECK_EQUAL( c.real(), T(17) );
+    BOOST_CHECK_EQUAL( c.imag(), T(19) );
+    BOOST_CHECK_EQUAL( d.real(), T(23) );
+    BOOST_CHECK_EQUAL( d.imag(), T(29) );
+
+    // Quaternions
+    complex_it<T, 2>  e = { (T)31, (T)37, (T)41, (T)43 }, f = { (T)47 };
+
+    BOOST_CHECK_EQUAL( e.real(), T(31) );
+    BOOST_CHECK_EQUAL( e.imag(), T(37) );
+    BOOST_CHECK_EQUAL( f.real(), T(47) );
+    BOOST_CHECK_EQUAL( f.imag(), T{} );
+    e.real( (T)53 );
+    e.imag( (T)59 );
+    f.real( (T)61 );
+    f.imag( (T)67 );
+    BOOST_CHECK_EQUAL( e.real(), T(53) );
+    BOOST_CHECK_EQUAL( e.imag(), T(59) );
+    BOOST_CHECK_EQUAL( f.real(), T(61) );
+    BOOST_CHECK_EQUAL( f.imag(), T(67) );
+
+    BOOST_CHECK_EQUAL( e[2], T(41) );
+    BOOST_CHECK_EQUAL( e[3], T(43) );
+    BOOST_CHECK_EQUAL( f[2], T{} );
+    BOOST_CHECK_EQUAL( f[3], T{} );
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // operation_tests
 
 BOOST_AUTO_TEST_SUITE( tuple_tests )

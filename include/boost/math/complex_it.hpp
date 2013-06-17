@@ -130,6 +130,27 @@ struct complex_it
     //! \overload
     auto  operator []( size_type i ) noexcept -> value_type &  { return c[i]; }
 
+    /** \brief    Real-component inspector
+        \returns  `(*this)[0]`.
+     */
+    constexpr  auto  real() const -> value_type   { return c[0]; }
+    /** \brief     Real-component mutator
+        \param[in] r  The new real component value.
+        \post      `(*this)[0] == r`.
+     */
+               void  real( value_type const &r )  { c[0] = r; }
+    /** \brief    Imaginary-component inspector
+        \returns  `(*this)[1]`.  (Or `value_type{}` when #rank is 0.)
+     */
+    constexpr  auto  imag() const -> value_type
+    { return rank ? c[1] : value_type{}; }  // Hope the choice is optimized out.
+    /** \brief     Imaginary-component mutator
+        \pre       #rank \> 0.
+        \param[in] i  The new (classic) imaginary component value.
+        \post      `(*this)[1] == i`.
+     */
+               void  imag( value_type const &i )  { c[1] = i; }
+
     /** \brief  The lower (i.e. real-ward) decomposed half of this value
 
     When #rank is 0, `*this` is returned as a degenerate case.
