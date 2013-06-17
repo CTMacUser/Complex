@@ -306,6 +306,28 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_complex_barrages, T, test_types )
     BOOST_CHECK_EQUAL( oo2[1], oo[5] );
     BOOST_CHECK_EQUAL( oo2[2], oo[6] );
     BOOST_CHECK_EQUAL( oo2[3], oo[7] );
+
+    // Mutability
+    o.lower_barrage( oo2 );
+    o.upper_barrage( oo1 );
+    BOOST_CHECK_EQUAL( oo1[0], oo[4] );
+    BOOST_CHECK_EQUAL( oo1[1], oo[5] );
+    BOOST_CHECK_EQUAL( oo1[2], oo[6] );
+    BOOST_CHECK_EQUAL( oo1[3], oo[7] );
+    BOOST_CHECK_EQUAL( oo2[0], oo[0] );
+    BOOST_CHECK_EQUAL( oo2[1], oo[1] );
+    BOOST_CHECK_EQUAL( oo2[2], oo[2] );
+    BOOST_CHECK_EQUAL( oo2[3], oo[3] );
+
+    // Degenerate mutability
+    complex_it<T, 0>  s;
+
+    s[ 0 ] = (T)63;
+    r.lower_barrage( s );
+    BOOST_CHECK_EQUAL( r[0], r.lower_barrage()[0] );
+    s[ 0 ] = (T)65;
+    r.upper_barrage( s );
+    BOOST_CHECK_EQUAL( r[0], r.upper_barrage()[0] );
 }
 
 // Check comparisons between hypercomplex and scalars.

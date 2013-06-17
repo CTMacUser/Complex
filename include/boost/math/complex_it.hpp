@@ -164,7 +164,7 @@ struct complex_it
     while the recursion-based class template versions return references, in
     `const` and mutable versions.
 
-        \see  #upper_barrage
+        \see  #upper_barrage()const
 
         \returns  `Lower( *this ) := { c[0]; c[1]; ...; c[2^(Rank - 1) - 1] }`
      */
@@ -175,6 +175,14 @@ struct complex_it
         std::copy( &c[0], &c[static_size / 2u + !rank], &result[0] );
         return result;
     }
+    /** \brief     Mutate the lower decomposed half of this object
+        \see       #upper_barrage(barrage_type const&)
+        \see       #lower_barrage()const
+        \param[in] b  The new value of the targeted half.
+        \post      `this->lower_barrage() == b`.
+     */
+    void  lower_barrage( barrage_type const &b )
+    { std::copy(&b[ 0 ], &b[ static_size / 2u + !rank ], &c[ 0 ]); }
     /** \brief  The upper (i.e. imaginary-ward) decomposed half of this value
 
     When #rank is 0, `*this` is returned as a degenerate case.
@@ -188,7 +196,7 @@ struct complex_it
     while the recursion-based class template versions return references, in
     `const` and mutable versions.
 
-        \see  #lower_barrage
+        \see  #lower_barrage()const
 
         \returns  `Upper( *this ) := { c[2^(Rank - 1)]; ...; c[2^Rank - 1] }`
      */
@@ -199,6 +207,14 @@ struct complex_it
         std::copy( &c[static_size / 2u], &c[static_size], &result[0] );
         return result;
     }
+    /** \brief     Mutate the upper decomposed half of this object
+        \see       #lower_barrage(barrage_type const&)
+        \see       #upper_barrage()const
+        \param[in] b  The new value of the targeted half.
+        \post      `this->upper_barrage() == b`.
+     */
+    void  upper_barrage( barrage_type const &b )
+    { std::copy(&b[0 ], &b[static_size / 2u + !rank ], &c[static_size / 2u ]); }
 
     // Conditions
     /** \brief  Boolean conversion
