@@ -39,6 +39,7 @@ namespace {
     typedef list<int, unsigned, double, mp::int512_t, my_float>  test_types;
     typedef list<int, unsigned, mp::int512_t>            test_integer_types;
     typedef list<double, my_float>                      test_floating_types;
+    typedef list<int, unsigned, double>                  test_builtin_types;
 
 }
 
@@ -845,6 +846,38 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_swap, T, test_types )
     BOOST_CHECK_EQUAL( d[3], T(13) );
 }
 
+// Check conjugation.
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_conj, T, test_types )
+{
+    // Need to bring this into scope.
+    using boost::math::conj;
+
+    // Reals
+    complex_it<T, 0> const  a = {},         b = { (T)2 };
+    auto const             aa = conj( a ), bb = conj( b );
+
+    BOOST_CHECK_EQUAL( aa[0], +T{} );
+    BOOST_CHECK_EQUAL( bb[0], +T(2) );
+
+    // (Regular) complex
+    complex_it<T, 1> const  c = { (T)3, (T)5 }, d = { (T)7 };
+    auto const             cc = conj( c ),     dd = conj( d );
+
+    BOOST_CHECK_EQUAL( cc[0], +T(3) );
+    BOOST_CHECK_EQUAL( cc[1], -T(5) );
+    BOOST_CHECK_EQUAL( dd[0], +T(7) );
+    BOOST_CHECK_EQUAL( dd[1], -T{} );
+
+    // Quaternions
+    complex_it<T, 2> const  e = { (T)11, (T)13, (T)17, (T)19 };
+    auto const             ee = conj( e );
+
+    BOOST_CHECK_EQUAL( ee[0], +T(11) );
+    BOOST_CHECK_EQUAL( ee[1], -T(13) );
+    BOOST_CHECK_EQUAL( ee[2], -T(17) );
+    BOOST_CHECK_EQUAL( ee[3], -T(19) );
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // operation_tests
 
 BOOST_AUTO_TEST_SUITE( tuple_tests )
@@ -948,5 +981,69 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_tuple_get, T, test_types )
 }
 
 BOOST_AUTO_TEST_SUITE_END()  // tuple_tests
+
+BOOST_AUTO_TEST_SUITE( operator_tests )
+
+// Check the identity operator.
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_identity, T, test_builtin_types )
+{
+    // Reals
+    complex_it<T, 0> const   a = {},  b = { (T)2 };
+    auto const              aa = +a, bb = +b;
+
+    BOOST_CHECK_EQUAL( aa[0], +T{} );
+    BOOST_CHECK_EQUAL( bb[0], +T(2) );
+
+    // Quaternions
+    complex_it<T, 2> const  c = { (T)3, (T)5, (T)7 };
+    auto const             cc = +c;
+
+    BOOST_CHECK_EQUAL( cc[0], +T(3) );
+    BOOST_CHECK_EQUAL( cc[1], +T(5) );
+    BOOST_CHECK_EQUAL( cc[2], +T(7) );
+    BOOST_CHECK_EQUAL( cc[3], +T{} );
+}
+
+// Check the negation operator.
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_negation, T, test_types )
+{
+    // Reals
+    complex_it<T, 0> const   a = {},  b = { (T)2 };
+    auto const              aa = -a, bb = -b;
+
+    BOOST_CHECK_EQUAL( aa[0], -T{} );
+    BOOST_CHECK_EQUAL( bb[0], -T(2) );
+
+    // Quaternions
+    complex_it<T, 2> const  c = { (T)3, (T)5, (T)7 };
+    auto const             cc = -c;
+
+    BOOST_CHECK_EQUAL( cc[0], -T(3) );
+    BOOST_CHECK_EQUAL( cc[1], -T(5) );
+    BOOST_CHECK_EQUAL( cc[2], -T(7) );
+    BOOST_CHECK_EQUAL( cc[3], -T{} );
+}
+
+// Check the (new) conjugation operator.
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_conjugation, T, test_types )
+{
+    // Reals
+    complex_it<T, 0> const   a = {},  b = { (T)2 };
+    auto const              aa = ~a, bb = ~b;
+
+    BOOST_CHECK_EQUAL( aa[0], +T{} );
+    BOOST_CHECK_EQUAL( bb[0], +T(2) );
+
+    // Quaternions
+    complex_it<T, 2> const  c = { (T)3, (T)5, (T)7 };
+    auto const             cc = ~c;
+
+    BOOST_CHECK_EQUAL( cc[0], +T(3) );
+    BOOST_CHECK_EQUAL( cc[1], -T(5) );
+    BOOST_CHECK_EQUAL( cc[2], -T(7) );
+    BOOST_CHECK_EQUAL( cc[3], -T{} );
+}
+
+BOOST_AUTO_TEST_SUITE_END()  // operator_tests
 
 BOOST_AUTO_TEST_SUITE_END()  // complex_it_tests

@@ -839,6 +839,99 @@ bool  operator !=( T const &l, complex_rt<T, R> const &r )
 { return not operator ==(l, r); }
 
 
+//  Unary operators  ---------------------------------------------------------//
+
+/** \brief  Identity operator
+
+Returns the given value (possibly normalized).
+
+The definition can be broken down as:
+- Real: `+r`
+- Component-wise: `{ +c[0], +c[1], ..., +c[2^Rank - 1] }`
+- Barrage-wise: `{ +Lower; +Upper }`
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `+declval<T>()` is well-formed.
+
+    \param[in] x  The input value.
+
+    \returns  `x`.
+ */
+template < typename T >
+inline constexpr
+auto  operator +( complex_rt<T, 0u> const &x )
+ -> complex_rt<decltype( +std::declval<T>() ), 0u>
+{ return {+x[ 0 ]}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline constexpr
+auto  operator +( complex_rt<T, R> const &x )
+ -> complex_rt<decltype( +std::declval<T>() ), R>
+{ return {+x.lower_barrage(), +x.upper_barrage()}; }
+
+/** \brief  Negation operator
+
+Returns the additive inverse of the given value.
+
+The definition can be broken down as:
+- Real: `-r`
+- Component-wise: `{ -c[0], -c[1], ..., -c[2^Rank - 1] }`
+- Barrage-wise: `{ -Lower; -Upper }`
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `-declval<T>()` is well-formed.
+
+    \param[in] x  The input value.
+
+    \returns  A value `y` such that `x + y == decltype(x){}`.
+ */
+template < typename T >
+inline constexpr
+auto  operator -( complex_rt<T, 0u> const &x )
+ -> complex_rt<decltype( -std::declval<T>() ), 0u>
+{ return {-x[ 0 ]}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline constexpr
+auto  operator -( complex_rt<T, R> const &x )
+ -> complex_rt<decltype( -std::declval<T>() ), R>
+{ return {-x.lower_barrage(), -x.upper_barrage()}; }
+
+/** \brief  Complex conjugate, in operator form
+
+Returns the complex conjugate of the given value.  This is commonly given as
+`conj(x)` in computer code, but the `~x` notation is reminiscent of the compact
+notations of this operation in prose.  (The `operator ~` would be otherwise
+unused, anyway.)
+
+    \relates  #boost::math::complex_rt
+
+    \param[in] x  The input value.
+
+    \returns  `Conj(x)`.
+ */
+template < typename T >
+inline constexpr
+auto  operator ~( complex_rt<T, 0u> const &x ) -> complex_rt<T, 0u>
+{ return {+x[ 0 ]}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline constexpr
+auto  operator ~( complex_rt<T, R> const &x ) -> complex_rt<T, R>
+{ return {~x.lower_barrage(), -x.upper_barrage()}; }
+
+
 //  Input/output operators  --------------------------------------------------//
 
 /** \brief  Output-streaming for `complex_rt`.
@@ -877,6 +970,32 @@ operator <<( std::basic_ostream<Ch, Tr> &o, complex_rt<T, R> const &x )
     s.precision( o.precision() );
     return o << '(' << x.lower_barrage() << ',' << x.upper_barrage() << ')';
 }
+
+
+//  Hypercomplex condition functions  ----------------------------------------//
+
+/** \brief  Complex conjugate
+
+Returns the complex conjugate of the given value.  This function is a core
+operation for complex numbers.  The component type must *not* have a version of
+this function (or at least one that differs from the identity function), since
+that implementation will be ignored.
+
+The definition can be broken down as:
+- Real: `+r`
+- Component-wise: `{ +c[0], -c[1], ..., -c[2^Rank - 1] }`
+- Barrage-wise: `{ Conj(Lower); -Upper }`
+
+    \relatesalso  #boost::math::complex_rt
+
+    \param[in] x  The input value.
+
+    \returns  The reflection of `x` on the real axis.
+ */
+template < typename T, std::size_t R >
+inline constexpr
+auto  conj( complex_rt<T, R> const &x ) -> complex_rt<T, R>
+{ return ~x; }
 
 
 }  // namespace math
