@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
+#include <numeric>
 #include <ostream>
 #include <sstream>
 #include <tuple>
@@ -852,6 +853,34 @@ template < typename T, std::size_t R >
 inline
 auto  conj( complex_it<T, R> const &x ) -> complex_it<T, R>
 { return ~x; }
+
+/** \brief  Cayley norm
+
+Returns the Cayley norm of the given value.  This is formed by multiplying a
+value by its conjugate, which results in the square of the conventional norm
+(i.e. Euclidean norm, absolute value, or distance).
+
+The Cayley norm is always a non-negative real number.  It is zero only when the
+input value is zero.  Real-life computational arithmetic may result in negative
+values or a zero-norm from a non-zero value due to overflow, wraparound, or
+other condition events.
+
+The definition can be broken down as:
+- Real: `r^2`
+- Component-wise: `c[0]^2 + c[1]^2 +...+ c[2^Rank - 1]^2`
+- Barrage-wise: `Norm(Lower) + Norm(Upper)`
+
+    \relatesalso  #boost::math::complex_it
+
+    \param[in] x  The input value.
+
+    \returns  `Norm(x) := Conj(x) * x`.
+ */
+template < typename T, std::size_t R >
+inline
+auto  norm( complex_it<T, R> const &x )
+ -> decltype( std::declval<T>() * std::declval<T>() )
+{ return std::inner_product(begin(x), end(x), begin(x), decltype(norm(x)){}); }
 
 
 }  // namespace math

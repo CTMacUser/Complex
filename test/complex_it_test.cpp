@@ -995,6 +995,58 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_member_unreal, T, test_types )
     BOOST_CHECK_EQUAL( f.real(), T(53) );
 }
 
+// Check (Cayley) norm, with integer types.
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_norm1, T, test_integer_types )
+{
+    // Need to bring this into scope.
+    using boost::math::norm;
+
+    // Reals
+    complex_it<T, 0> const  a = {}, b = { (T)2 };
+
+    BOOST_CHECK_EQUAL( norm(a), T{} );
+    BOOST_CHECK_EQUAL( norm(b), T(4) );
+
+    // (Regular) complex
+    complex_it<T, 1> const  c = {}, d = { (T)3 }, e = { (T)5, (T)7 };
+
+    BOOST_CHECK_EQUAL( norm(c), T{} );
+    BOOST_CHECK_EQUAL( norm(d), T(9) );
+    BOOST_CHECK_EQUAL( norm(e), T(74) );
+
+    // Quaternions
+    complex_it<T, 2> const  f = {}, g = { (T)11, (T)13, (T)17, (T)19 };
+
+    BOOST_CHECK_EQUAL( norm(f), T{} );
+    BOOST_CHECK_EQUAL( norm(g), T(940) );
+}
+
+// Check (Cayley) norm, with floating-point types.
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_norm2, T, test_floating_types )
+{
+    // Need to bring this into scope.
+    using boost::math::norm;
+
+    // Reals
+    complex_it<T, 0> const  a = {}, b = { (T)2 };
+
+    BOOST_CHECK_CLOSE( norm(a), T{}, 0.1 );
+    BOOST_CHECK_CLOSE( norm(b), T(4), 0.1 );
+
+    // (Regular) complex
+    complex_it<T, 1> const  c = {}, d = { -(T)3 }, e = { (T)5, (T)-7 };
+
+    BOOST_CHECK_CLOSE( norm(c), T{}, 0.1 );
+    BOOST_CHECK_CLOSE( norm(d), T(9), 0.1 );
+    BOOST_CHECK_CLOSE( norm(e), T(74), 0.1 );
+
+    // Quaternions
+    complex_it<T, 2> const  f = {}, g = { (T)11, (T)13, -(T)17, (T)19 };
+
+    BOOST_CHECK_CLOSE( norm(f), T{}, 0.1 );
+    BOOST_CHECK_CLOSE( norm(g), T(940), 0.1 );
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // operation_tests
 
 BOOST_AUTO_TEST_SUITE( tuple_tests )

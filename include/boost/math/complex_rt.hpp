@@ -1045,6 +1045,43 @@ inline constexpr
 auto  conj( complex_rt<T, R> const &x ) -> complex_rt<T, R>
 { return ~x; }
 
+/** \brief  Cayley norm
+
+Returns the Cayley norm of the given value.  This is formed by multiplying a
+value by its conjugate, which results in the square of the conventional norm
+(i.e. Euclidean norm, absolute value, or distance).
+
+The Cayley norm is always a non-negative real number.  It is zero only when the
+input value is zero.  Real-life computational arithmetic may result in negative
+values or a zero-norm from a non-zero value due to overflow, wraparound, or
+other condition events.
+
+The definition can be broken down as:
+- Real: `r^2`
+- Component-wise: `c[0]^2 + c[1]^2 +...+ c[2^Rank - 1]^2`
+- Barrage-wise: `Norm(Lower) + Norm(Upper)`
+
+    \relatesalso  #boost::math::complex_rt
+
+    \param[in] x  The input value.
+
+    \returns  `Norm(x) := Conj(x) * x`.
+ */
+template < typename T >
+inline constexpr
+auto  norm( complex_rt<T, 0u> const &x )
+ -> decltype( std::declval<T>() * std::declval<T>() )
+{ return x[0] * x[0]; }
+
+/** \overload
+    \relatesalso  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline constexpr
+auto  norm( complex_rt<T, R> const &x )
+ -> decltype( std::declval<T>() * std::declval<T>() )
+{ return norm(x.lower_barrage()) + norm(x.upper_barrage()); }
+
 
 }  // namespace math
 }  // namespace boost
