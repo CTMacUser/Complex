@@ -99,6 +99,9 @@ struct complex_it
     static constexpr  size_type  rank = Rank;
     //! The total number of components, of type #value_type.
     static constexpr  size_type  static_size = 1ULL << rank;
+    //! Does this type have padding bytes?
+    static constexpr  bool       has_padding = sizeof( complex_it ) >
+     static_size * sizeof( value_type );
 
     // Support types
     /** \brief  The type immediately lower in Cayley-Dickson construction.
@@ -421,6 +424,23 @@ template < typename Number, std::size_t Rank >
 constexpr
 typename complex_it<Number, Rank>::size_type
   complex_it<Number, Rank>::static_size;
+
+/** When this is `false`, then a pointer to an array segment of this type can be
+    converted (with `reinterpret_cast`) to a pointer to an array segment of
+    #value_type with #static_size times the elements.  (Or an array of this type
+    can be converted to an array reference of `value_type`.)  This mirrors the
+    same requirement on `std::complex`.
+
+    You can also convert a pointer to one object of this type to a pointer to an
+    array segment of #value_type, #static_size in length.  (Or a reference to
+    this object to an array of `static_size` `value_type` objects.)  But even if
+    `has_padding` is `true`, this conversion is still legal if this type is
+    considered standard-layout (which requires `value_type` to be
+    standard-layout).
+ */
+template < typename Number, std::size_t Rank >
+constexpr
+bool  complex_it<Number, Rank>::has_padding;
 
 
 //  Implementation details  --------------------------------------------------//

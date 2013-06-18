@@ -78,6 +78,9 @@ struct complex_rt< Number, 0u >
     static constexpr  size_type  rank = 0u;
     //! \copybrief  #boost::math::complex_it::static_size
     static constexpr  size_type  static_size = 1u;
+    //! \copybrief  #boost::math::complex_it::has_padding
+    static constexpr  bool       has_padding = sizeof( complex_rt ) >
+     static_size * sizeof( value_type );
 
     // Support types
     //! A type-alias for compatibility with other instantiations.
@@ -285,6 +288,9 @@ struct complex_rt
     static constexpr  size_type  rank = Rank;
     //! \copybrief  #boost::math::complex_it::static_size
     static constexpr  size_type  static_size = 1ULL << rank;
+    //! \copybrief  #boost::math::complex_it::has_padding
+    static constexpr  bool       has_padding = sizeof( complex_rt ) >
+     static_size * sizeof( value_type );
 
     // Support types
     //! The type immediately lower in Cayley-Dickson construction.
@@ -650,6 +656,11 @@ template < typename Number >
 constexpr
 typename complex_rt<Number, 0u>::size_type  complex_rt<Number, 0u>::static_size;
 
+//! \copydetails  #boost::math::complex_it::has_padding
+template < typename Number >
+constexpr
+bool  complex_rt<Number, 0u>::has_padding;
+
 /** Gives access to a template parameter.  Past the base level, 1 is the
     (traditional) complex number level, 2 for quaternions, 3 for octonions, etc.
  */
@@ -663,6 +674,11 @@ template < typename Number, std::size_t Rank >
 constexpr
 typename complex_rt<Number, Rank>::size_type
   complex_rt<Number, Rank>::static_size;
+
+//! \copydetails  #boost::math::complex_it::has_padding
+template < typename Number, std::size_t Rank >
+constexpr
+bool  complex_rt<Number, Rank>::has_padding;
 
 
 //  Object support functions  ------------------------------------------------//

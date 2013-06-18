@@ -55,6 +55,16 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( complex_size_demo, T, test_types )
     BOOST_REQUIRE( sizeof(complex_it<T, 2>) >= sizeof(T) * 4 );
     BOOST_REQUIRE( sizeof(complex_it<T, 3>) >= sizeof(T) * 8 );
 
+    BOOST_WARN( not (complex_rt<T, 0>::has_padding) );
+    BOOST_WARN( not (complex_rt<T, 1>::has_padding) );
+    BOOST_WARN( not (complex_rt<T, 2>::has_padding) );
+    BOOST_WARN( not (complex_rt<T, 3>::has_padding) );
+
+    BOOST_WARN( not (complex_it<T, 0>::has_padding) );
+    BOOST_WARN( not (complex_it<T, 1>::has_padding) );
+    BOOST_WARN( not (complex_it<T, 2>::has_padding) );
+    BOOST_WARN( not (complex_it<T, 3>::has_padding) );
+
 #if BOOST_MATH_COMPLEX_IS_PACKED
     BOOST_REQUIRE_EQUAL( sizeof(complex_rt<T, 0>), sizeof(T) );
     BOOST_REQUIRE_EQUAL( sizeof(complex_rt<T, 1>), sizeof(T) * 2 );
