@@ -871,9 +871,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_swap, T, test_types )
 // Check conjugation.
 BOOST_AUTO_TEST_CASE_TEMPLATE( test_conj, T, test_types )
 {
-    // Need to bring this into scope.
-    using boost::math::conj;
-
     // Reals
     complex_it<T, 0> const  a = {},         b = { (T)2 };
     auto const             aa = conj( a ), bb = conj( b );
@@ -891,12 +888,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_conj, T, test_types )
     BOOST_CHECK_EQUAL( dd[1], -T{} );
 
     // Quaternions
-    complex_it<T, 2> const  e = { (T)11, (T)13, (T)17, (T)19 };
+    complex_it<T, 2> const  e = { (T)11, (T)13, -(T)17, (T)19 };
     auto const             ee = conj( e );
 
     BOOST_CHECK_EQUAL( ee[0], +T(11) );
     BOOST_CHECK_EQUAL( ee[1], -T(13) );
-    BOOST_CHECK_EQUAL( ee[2], -T(17) );
+    BOOST_CHECK_EQUAL( ee[2], +T(17) );  // double negative!
     BOOST_CHECK_EQUAL( ee[3], -T(19) );
 }
 
@@ -998,9 +995,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_member_unreal, T, test_types )
 // Check (Cayley) norm, with integer types.
 BOOST_AUTO_TEST_CASE_TEMPLATE( test_norm1, T, test_integer_types )
 {
-    // Need to bring this into scope.
-    using boost::math::norm;
-
     // Reals
     complex_it<T, 0> const  a = {}, b = { (T)2 };
 
@@ -1024,9 +1018,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_norm1, T, test_integer_types )
 // Check (Cayley) norm, with floating-point types.
 BOOST_AUTO_TEST_CASE_TEMPLATE( test_norm2, T, test_floating_types )
 {
-    // Need to bring this into scope.
-    using boost::math::norm;
-
     // Reals
     complex_it<T, 0> const  a = {}, b = { (T)2 };
 
@@ -1214,5 +1205,42 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_conjugation, T, test_types )
 }
 
 BOOST_AUTO_TEST_SUITE_END()  // operator_tests
+
+BOOST_AUTO_TEST_SUITE( function_tests )
+
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_real_imag_unreal, T, test_types )
+{
+    // Reals
+    complex_it<T, 0> const  a = {}, b = { (T)2 };
+
+    BOOST_CHECK_EQUAL( real(a), T{} );
+    BOOST_CHECK_EQUAL( imag(a), T{} );
+    BOOST_CHECK_EQUAL( unreal(a), decltype(a){} );
+    BOOST_CHECK_EQUAL( real(b), T(2) );
+    BOOST_CHECK_EQUAL( imag(b), T{} );
+    BOOST_CHECK_EQUAL( unreal(b), decltype(b){} );
+
+    // (Regular) complexes
+    complex_it<T, 1> const  c = {}, d = { (T)3, (T)5 };
+
+    BOOST_CHECK_EQUAL( real(c), T{} );
+    BOOST_CHECK_EQUAL( imag(c), T{} );
+    BOOST_CHECK_EQUAL( unreal(c), decltype(c){} );
+    BOOST_CHECK_EQUAL( real(d), T(3) );
+    BOOST_CHECK_EQUAL( imag(d), T(5) );
+    BOOST_CHECK_EQUAL( unreal(d), (decltype(d){ T{}, T(5) }) );
+
+    // Quaternions
+    complex_it<T, 2> const  e = {}, f = { (T)7, (T)11, (T)13 };
+
+    BOOST_CHECK_EQUAL( real(e), T{} );
+    BOOST_CHECK_EQUAL( imag(e), T{} );
+    BOOST_CHECK_EQUAL( unreal(e), decltype(e){} );
+    BOOST_CHECK_EQUAL( real(f), T(7) );
+    BOOST_CHECK_EQUAL( imag(f), T(11) );
+    BOOST_CHECK_EQUAL( unreal(f), (decltype(f){ T{}, T(11), T(13), T{} }) );
+}
+
+BOOST_AUTO_TEST_SUITE_END()  // function_tests
 
 BOOST_AUTO_TEST_SUITE_END()  // complex_it_tests

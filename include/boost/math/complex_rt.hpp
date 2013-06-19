@@ -1083,6 +1083,59 @@ auto  norm( complex_rt<T, R> const &x )
 { return norm(x.lower_barrage()) + norm(x.upper_barrage()); }
 
 
+//  Component functions  -----------------------------------------------------//
+
+/** \brief  Real part
+
+Returns the real part of the given value.
+
+The definition can be broken down as:
+- Real: `r`
+- Component-wise: `c[0]`
+- Barrage-wise: `Re(Lower)`
+
+    \param[in] x  The input value.
+
+    \returns  `Re(x) := ( x + Conj(x) ) / 2`.
+ */
+template < typename T, std::size_t R >
+inline
+auto  real( complex_rt<T, R> const &x ) -> T
+{ return x.real(); }
+
+/** \brief  Imaginary part
+
+Returns the imaginary part of the given value.  It doesn't have a natural
+definition from Cayley-Dickson construction.
+
+    \param[in] x  The input value.
+
+    \returns  `Im(x) := Re( -i * x )`, where *i* is the classic imaginary unit.
+ */
+template < typename T, std::size_t R >
+inline
+auto  imag( complex_rt<T, R> const &x ) -> T
+{ return x.imag(); }
+
+/** \brief  Unreal part
+
+Returns the unreal part of the given value.
+
+The definition can be broken down as:
+- Real: `0`
+- Component-wise: `{ 0, c[1], ..., c[2^Rank - 1] }`
+- Barrage-wise: `{ Ur(Lower); Upper }`
+
+    \param[in] x  The input value.
+
+    \returns  `Ur(x) := ( x - Conj(x) ) / 2`.
+ */
+template < typename T, std::size_t R >
+inline
+auto  unreal( complex_rt<T, R> const &x ) -> complex_rt<T, R>
+{ return x.unreal(); }
+
+
 }  // namespace math
 }  // namespace boost
 
