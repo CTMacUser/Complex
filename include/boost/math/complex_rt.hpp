@@ -961,6 +961,216 @@ auto  operator +( complex_rt<T, R> const &x )
  -> complex_rt<decltype( +std::declval<T>() ), R>
 { return {+x.lower_barrage(), +x.upper_barrage()}; }
 
+/** \brief  Addition
+
+Calculates the sum of the given values.
+
+The definition can be broken down as:
+- Real: `rA + rB`
+- Component-wise: `{ cA[0] + cB[0], ..., cA[ 2^Rank - 1 ] + cB[ 2^Rank - 1 ] }`
+- Barrage-wise: `{ lowerA + lowerB; upperA + upperB }`
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T>() + declval<U>()` is well-formed.  Let's call the result
+          type `SS`.
+    \pre  `+declval<T>()` and `+declval<U>()` are well-formed.
+    \pre  Both `T` and `U` can implicitly be assigned to a `SS`.
+
+    \param[in] augend  The first value to be added.
+    \param[in] addend  The second value to be added.
+
+    \returns  The sum of `augend` and `addend`.
+ */
+template < typename T, typename U >
+inline constexpr
+auto  operator +( complex_rt<T, 0u> const &augend, complex_rt<U, 0u> const
+ &addend )
+ -> complex_rt<decltype( std::declval<T>() + std::declval<U>() ), 0u>
+{ return {augend[ 0 ] + addend[ 0 ]}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, typename U, std::size_t R >
+inline constexpr
+auto  operator +( complex_rt<T,R> const &augend, complex_rt<U,R> const &addend )
+ -> complex_rt<decltype( std::declval<T>() + std::declval<U>() ), R>
+{
+    return { augend.lower_barrage() + addend.lower_barrage(),
+     augend.upper_barrage() + addend.upper_barrage() };
+}
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline constexpr
+auto  operator +( complex_rt<T,R> const &augend, complex_rt<U,S> const &addend )
+ -> typename std::enable_if< (R < S), complex_rt<decltype( std::declval<T>() +
+ std::declval<U>() ), S> >::type
+{ return {augend + addend.lower_barrage(), +addend.upper_barrage()}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline constexpr
+auto  operator +( complex_rt<T,R> const &augend, complex_rt<U,S> const &addend )
+ -> typename std::enable_if< (R > S), complex_rt<decltype( std::declval<T>() +
+ std::declval<U>() ), R> >::type
+{ return {augend.lower_barrage() + addend, +augend.upper_barrage()}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T >
+inline constexpr
+auto  operator +( T const &augend, complex_rt<T, 0u> const &addend )
+ -> complex_rt<decltype( std::declval<T>() + std::declval<T>() ), 0u>
+{ return {augend + addend[ 0 ]}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline constexpr
+auto  operator +( T const &augend, complex_rt<T, R> const &addend )
+ -> complex_rt<decltype( std::declval<T>() + std::declval<T>() ), R>
+{ return {augend + addend.lower_barrage(), +addend.upper_barrage()}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T >
+inline constexpr
+auto  operator +( complex_rt<T, 0u> const &augend, T const &addend )
+ -> complex_rt<decltype( std::declval<T>() + std::declval<T>() ), 0u>
+{ return {augend[ 0 ] + addend}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline constexpr
+auto  operator +( complex_rt<T, R> const &augend, T const &addend )
+ -> complex_rt<decltype( std::declval<T>() + std::declval<T>() ), R>
+{ return {augend.lower_barrage() + addend, +augend.upper_barrage()}; }
+
+/** \brief  Add-and-assign
+
+Calculates the sum of the given objects into the first.
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T &>() += declval<U>()` is well-formed.
+    \pre  The rank of `addend` doesn't exceed that of `augend_sum`.
+
+    \param[in,out] augend_sum  The first value to be added, and the location of
+                               the future sum.
+    \param[in]     addend      The second value to be added.
+
+    \returns  A reference to post-addition `augend_sum`.
+ */
+template < typename T, typename U >
+inline
+auto  operator +=(complex_rt<T, 0u> &augend_sum,complex_rt<U, 0u> const &addend)
+ -> complex_rt<T, 0u> &
+{ return augend_sum[0] += addend[0], augend_sum; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, typename U, std::size_t R >
+inline
+auto  operator +=( complex_rt<T, R> &augend_sum,complex_rt<U, R> const &addend )
+ -> complex_rt<T, R> &
+{
+    augend_sum.lower_barrage() += addend.lower_barrage();
+    augend_sum.upper_barrage() += addend.upper_barrage();
+    return augend_sum;
+}
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+auto  operator +=( complex_rt<T, R> &augend_sum,complex_rt<U, S> const &addend )
+ -> typename std::enable_if< (R > S), complex_rt<T, R> >::type &
+{ return augend_sum.lower_barrage() += addend, augend_sum; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T >
+inline
+auto  operator +=( complex_rt<T, 0u> &augend_sum, T const &addend )
+ -> complex_rt<T, 0u> &
+{ return augend_sum[0] += addend, augend_sum; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline
+auto  operator +=( complex_rt<T, R> &augend_sum, T const &addend )
+ -> complex_rt<T, R> &
+{ return augend_sum.lower_barrage() += addend, augend_sum; }
+
+/** \brief  Pre-increment
+
+Applies the successor function to the given object, turning it into the sum of
+the original value and one.  (This is the same inappropriate application that
+the built-in floating types get.)  Only the real part is affected.
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `++declval<T &>()` is well-formed.
+
+    \param[in,out] augend_sum  The object to be affected.
+
+    \returns  A reference to post-increment `augend_sum`.
+ */
+template < typename T >
+inline
+auto  operator ++( complex_rt<T, 0u> &augend_sum ) -> complex_rt<T, 0u> &
+{ return ++augend_sum[0], augend_sum; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline
+auto  operator ++( complex_rt<T, R> &augend_sum ) -> complex_rt<T, R> &
+{ return ++augend_sum.lower_barrage(), augend_sum; }
+
+/** \brief  Post-increment
+
+Applies the successor function to the given object, turning it into the sum of
+the original value and one.  (This is the same inappropriate application that
+the built-in floating types get.)  Only the real part is affected.
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T &>()++` is well-formed.
+
+    \param[in,out] augend_sum  The object to be affected.
+
+    \returns  A copy of pre-increment `augend_sum`.
+ */
+template < typename T >
+inline
+auto  operator ++( complex_rt<T, 0u> &augend_sum, int ) -> complex_rt<T, 0u>
+{ return {augend_sum[ 0 ]++}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline
+auto  operator ++( complex_rt<T, R> &augend_sum, int ) -> complex_rt<T, R>
+{ return {augend_sum.lower_barrage()++, augend_sum.upper_barrage()}; }
+
 
 //  Subtraction operators  ---------------------------------------------------//
 
@@ -995,6 +1205,227 @@ inline constexpr
 auto  operator -( complex_rt<T, R> const &x )
  -> complex_rt<decltype( -std::declval<T>() ), R>
 { return {-x.lower_barrage(), -x.upper_barrage()}; }
+
+/** \brief  Subtraction
+
+Calculates the difference of the given values.
+
+The definition can be broken down as:
+- Real: `rA - rB`
+- Component-wise: `{ cA[0] - cB[0], ..., cA[ 2^Rank - 1 ] - cB[ 2^Rank - 1 ] }`
+- Barrage-wise: `{ lowerA - lowerB; upperA - upperB }`
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T>() - declval<U>()` is well-formed.  Let's call the result
+          type `SS`.
+    \pre  `+declval<T>()` and `-declval<U>()` are well-formed.
+    \pre  Both `T` and `U` can implicitly be assigned to a `SS`.
+
+    \param[in] minuend     The value to be subtracted from.
+    \param[in] subtrahend  The value to be subtracted.
+
+    \returns  The difference of the `subtrahend` from the `minuend`.
+ */
+template < typename T, typename U >
+inline constexpr
+auto  operator -( complex_rt<T, 0u> const &minuend, complex_rt<U, 0u> const
+ &subtrahend )
+ -> complex_rt<decltype( std::declval<T>() - std::declval<U>() ), 0u>
+{ return {minuend[ 0 ] - subtrahend[ 0 ]}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, typename U, std::size_t R >
+inline constexpr
+auto  operator -( complex_rt<T, R> const &minuend, complex_rt<U, R> const
+ &subtrahend )
+ -> complex_rt<decltype( std::declval<T>() - std::declval<U>() ), R>
+{
+    return { minuend.lower_barrage() - subtrahend.lower_barrage(),
+     minuend.upper_barrage() - subtrahend.upper_barrage() };
+}
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline constexpr
+auto  operator -( complex_rt<T, R> const &minuend, complex_rt<U, S> const
+ &subtrahend )
+ -> typename std::enable_if< (R < S), complex_rt<decltype( std::declval<T>() -
+ std::declval<U>() ), S> >::type
+{ return {minuend - subtrahend.lower_barrage(), -subtrahend.upper_barrage()}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline constexpr
+auto  operator -( complex_rt<T, R> const &minuend, complex_rt<U, S> const
+ &subtrahend )
+ -> typename std::enable_if< (R > S), complex_rt<decltype( std::declval<T>() -
+ std::declval<U>() ), R> >::type
+{ return {minuend.lower_barrage() - subtrahend, +minuend.upper_barrage()}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T >
+inline constexpr
+auto  operator -( T const &minuend, complex_rt<T, 0u> const &subtrahend )
+ -> complex_rt<decltype( std::declval<T>() - std::declval<T>() ), 0u>
+{ return {minuend - subtrahend[ 0 ]}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline constexpr
+auto  operator -( T const &minuend, complex_rt<T, R> const &subtrahend )
+ -> complex_rt<decltype( std::declval<T>() - std::declval<T>() ), R>
+{ return {minuend - subtrahend.lower_barrage(), -subtrahend.upper_barrage()}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T >
+inline constexpr
+auto  operator -( complex_rt<T, 0u> const &minuend, T const &subtrahend )
+ -> complex_rt<decltype( std::declval<T>() - std::declval<T>() ), 0u>
+{ return {minuend[ 0 ] - subtrahend}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline constexpr
+auto  operator -( complex_rt<T, R> const &minuend, T const &subtrahend )
+ -> complex_rt<decltype( std::declval<T>() - std::declval<T>() ), R>
+{ return {minuend.lower_barrage() - subtrahend, +minuend.upper_barrage()}; }
+
+/** \brief  Subtract-and-assign
+
+Calculates the difference of the given objects into the first.
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T &>() -= declval<U>()` is well-formed.
+    \pre  The rank of `subtrahend` doesn't exceed that of `minuend_difference`.
+
+    \param[in,out] minuend_difference  The value to be subtracted from, and the
+                                       location of the future difference.
+    \param[in]     subtrahend          The value to be subtracted.
+
+    \returns  A reference to post-subtraction `minuend_difference`.
+ */
+template < typename T, typename U >
+inline
+auto  operator -=( complex_rt<T, 0u> &minuend_difference, complex_rt<U, 0u>
+ const &subtrahend )
+ -> complex_rt<T, 0u> &
+{ return minuend_difference[0] -= subtrahend[0], minuend_difference; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, typename U, std::size_t R >
+inline
+auto  operator -=( complex_rt<T, R> &minuend_difference, complex_rt<U, R> const
+ &subtrahend )
+ -> complex_rt<T, R> &
+{
+    minuend_difference.lower_barrage() -= subtrahend.lower_barrage();
+    minuend_difference.upper_barrage() -= subtrahend.upper_barrage();
+    return minuend_difference;
+}
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+auto  operator -=( complex_rt<T, R> &minuend_difference, complex_rt<U, S> const
+ &subtrahend )
+ -> typename std::enable_if< (R > S), complex_rt<T, R> >::type &
+{ return minuend_difference.lower_barrage() -= subtrahend, minuend_difference; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T >
+inline
+auto  operator -=( complex_rt<T, 0u> &minuend_difference, T const &subtrahend )
+ -> complex_rt<T, 0u> &
+{ return minuend_difference[0] -= subtrahend, minuend_difference; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline
+auto  operator -=( complex_rt<T, R> &minuend_difference, T const &subtrahend )
+ -> complex_rt<T, R> &
+{ return minuend_difference.lower_barrage() -= subtrahend, minuend_difference; }
+
+/** \brief  Pre-decrement
+
+Applies the predecessor function to the given object, turning it into the
+difference of the original value and one.  (This is the same inappropriate
+application that the built-in floating types get.)  Only the real part is
+affected.
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `--declval<T &>()` is well-formed.
+
+    \param[in,out] minuend_difference  The object to be affected.
+
+    \returns  A reference to post-decrement `minuend_difference`.
+ */
+template < typename T >
+inline
+auto  operator --( complex_rt<T, 0u> &minuend_difference ) -> complex_rt<T,0u> &
+{ return --minuend_difference[0], minuend_difference; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline
+auto  operator --( complex_rt<T, R> &minuend_difference ) -> complex_rt<T, R> &
+{ return --minuend_difference.lower_barrage(), minuend_difference; }
+
+/** \brief  Post-decrement
+
+Applies the predecessor function to the given object, turning it into the
+difference of the original value and one.  (This is the same inappropriate
+application that the built-in floating types get.)  Only the real part is
+affected.
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T &>()--` is well-formed.
+
+    \param[in,out] minuend_difference  The object to be affected.
+
+    \returns  A copy of pre-decrement `minuend_difference`.
+ */
+template < typename T >
+inline
+auto  operator --(complex_rt<T, 0u> &minuend_difference,int) -> complex_rt<T,0u>
+{ return {minuend_difference[ 0 ]--}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline
+auto  operator --( complex_rt<T, R> &minuend_difference,int ) -> complex_rt<T,R>
+{
+    return { minuend_difference.lower_barrage()--,
+     minuend_difference.upper_barrage() };
+}
 
 
 //  Hypercomplex condition functions  ----------------------------------------//
@@ -1036,6 +1467,13 @@ The definition can be broken down as:
 - Real: `+r`
 - Component-wise: `{ +c[0], -c[1], ..., -c[2^Rank - 1] }`
 - Barrage-wise: `{ Conj(Lower); -Upper }`
+
+This function has to act as an anti-involution (modulo real-life computing
+issues), which means:
+- Self-inverse: `Conj( Conj(x) ) == x`.
+- Linear w/ Adding: `Conj( x + y ) == Conj( x ) + Conj( y )`.
+- Linear w/ Scale: `Conj( scalar * x ) == scalar * Conj( x )`.
+- Reversed w/ Multiplying: `Conj( x * y ) == Conj( y ) * Conj( x )`.
 
     \relatesalso  #boost::math::complex_rt
 

@@ -1298,6 +1298,83 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_identity, T, test_builtin_types )
     BOOST_CHECK_EQUAL( cc[3], +T{} );
 }
 
+// Check the addition operators.
+BOOST_AUTO_TEST_CASE( test_addition )
+{
+    // Type-aliases
+    typedef complex_rt<int, 0>        real_type;
+    typedef complex_rt<int, 1>     complex_type;
+    typedef complex_rt<int, 2>  quaternion_type;
+
+    // Reals
+    BOOST_CHECK_EQUAL( real_type(2) + real_type(3), real_type(5) );
+    BOOST_CHECK_EQUAL( real_type(7) + 11, real_type(18) );
+    BOOST_CHECK_EQUAL( 11 + real_type(13), real_type(24) );
+
+    // (Regular) complexes
+    BOOST_CHECK_EQUAL( complex_type(17, 19) + complex_type(23, 29),
+     complex_type(40, 48) );
+    BOOST_CHECK_EQUAL( complex_type(31, 37) + 41, complex_type(72, 37) );
+    BOOST_CHECK_EQUAL( 43 + complex_type(47, 53), complex_type(90, 53) );
+    BOOST_CHECK_EQUAL( real_type(59) + complex_type(61, 67), complex_type(120,
+     67) );
+    BOOST_CHECK_EQUAL( complex_type(71, 73) + real_type(79), complex_type(150,
+     73) );
+
+    // Quaternions
+    BOOST_CHECK_EQUAL( quaternion_type(83, 89, 97, 101) + quaternion_type(103,
+     107, 109, 113), quaternion_type(186, 196, 206, 214) );
+    BOOST_CHECK_EQUAL( quaternion_type(127, 131, 137, 139) + 149,
+     quaternion_type(276, 131, 137, 139) );
+    BOOST_CHECK_EQUAL( 151 + quaternion_type(157, 163, 167, 173),
+     quaternion_type(308, 163, 167, 173) );
+    BOOST_CHECK_EQUAL( real_type(179) + quaternion_type(181, 191, 193, 197),
+     quaternion_type(360, 191, 193, 197) );
+    BOOST_CHECK_EQUAL( quaternion_type(199, 211, 223, 227) + real_type(229),
+     quaternion_type(428, 211, 223, 227) );
+    BOOST_CHECK_EQUAL( complex_type(233, 239) + quaternion_type(241, 251, 257,
+     263), quaternion_type(474, 490, 257, 263) );
+    BOOST_CHECK_EQUAL( quaternion_type(269, 271, 277, 281) + complex_type(283,
+     293), quaternion_type(552, 564, 277, 281) );
+
+    // Add-assignment
+    real_type        a = { 1 };
+    complex_type     b = { 2, 3 };
+    quaternion_type  c = { 4, 5, 6, 7 };
+
+    a += real_type{ 8 };
+    BOOST_CHECK_EQUAL( a, real_type(9) );
+    a += 10;
+    BOOST_CHECK_EQUAL( a, real_type(19) );
+    b += complex_type{ 11, 12 };
+    BOOST_CHECK_EQUAL( b, complex_type(13, 15) );
+    b += a;
+    BOOST_CHECK_EQUAL( b, complex_type(32, 15) );
+    b += 14;
+    BOOST_CHECK_EQUAL( b, complex_type(46, 15) );
+    c += quaternion_type{ 16, 17, 18, 20 };
+    BOOST_CHECK_EQUAL( c, quaternion_type(20, 22, 24, 27) );
+    c += b;
+    BOOST_CHECK_EQUAL( c, quaternion_type(66, 37, 24, 27) );
+    c += a;
+    BOOST_CHECK_EQUAL( c, quaternion_type(85, 37, 24, 27) );
+    c += 21;
+    BOOST_CHECK_EQUAL( c, quaternion_type(106, 37, 24, 27) );
+
+    // Successor
+    BOOST_CHECK_EQUAL( ++a, real_type(20) );
+    BOOST_CHECK_EQUAL( a++, real_type(20) );
+    BOOST_CHECK_EQUAL( a, real_type(21) );
+
+    BOOST_CHECK_EQUAL( ++b, complex_type(47, 15) );
+    BOOST_CHECK_EQUAL( b++, complex_type(47, 15) );
+    BOOST_CHECK_EQUAL( b, complex_type(48, 15) );
+
+    BOOST_CHECK_EQUAL( ++c, quaternion_type(107, 37, 24, 27) );
+    BOOST_CHECK_EQUAL( c++, quaternion_type(107, 37, 24, 27) );
+    BOOST_CHECK_EQUAL( c, quaternion_type(108, 37, 24, 27) );
+}
+
 // Check the negation operator.
 BOOST_AUTO_TEST_CASE_TEMPLATE( test_negation, T, test_builtin_types )
 {
@@ -1316,6 +1393,83 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_negation, T, test_builtin_types )
     BOOST_CHECK_EQUAL( cc[1], -T(5) );
     BOOST_CHECK_EQUAL( cc[2], -T(7) );
     BOOST_CHECK_EQUAL( cc[3], -T{} );
+}
+
+// Check the subtraction operators.
+BOOST_AUTO_TEST_CASE( test_subtraction )
+{
+    // Type-aliases
+    typedef complex_rt<int, 0>        real_type;
+    typedef complex_rt<int, 1>     complex_type;
+    typedef complex_rt<int, 2>  quaternion_type;
+
+    // Reals
+    BOOST_CHECK_EQUAL( real_type(3) - real_type(2), real_type(1) );
+    BOOST_CHECK_EQUAL( real_type(5) - 7, real_type(-2) );
+    BOOST_CHECK_EQUAL( -11 - real_type(-13), real_type(2) );
+
+    // (Regular) complexes
+    BOOST_CHECK_EQUAL( complex_type(23, 19) - complex_type(17, 29),
+     complex_type(6, -10) );
+    BOOST_CHECK_EQUAL( complex_type(37, -31) - -41, complex_type(78, -31) );
+    BOOST_CHECK_EQUAL( 43 - complex_type(47, 53), complex_type(-4, -53) );
+    BOOST_CHECK_EQUAL( real_type(61) - complex_type(59, 67), complex_type(2,
+     -67) );
+    BOOST_CHECK_EQUAL( complex_type(71, 73) - real_type(79), complex_type(-8,
+     73) );
+
+    // Quaternions
+    BOOST_CHECK_EQUAL( quaternion_type(103, 107, 109, 113) - quaternion_type(83,
+     89, 97, 101), quaternion_type(20, 18, 12, 12) );
+    BOOST_CHECK_EQUAL( quaternion_type(127, 137, 139, 149) - 131,
+     quaternion_type(-4, 137, 139, 149) );
+    BOOST_CHECK_EQUAL( 157 - quaternion_type(151, 163, 167, 173),
+     quaternion_type(6, -163, -167, -173) );
+    BOOST_CHECK_EQUAL( real_type(-179) - quaternion_type(-181, 191, -193, 197),
+     quaternion_type(2, -191, 193, -197) );
+    BOOST_CHECK_EQUAL( quaternion_type(199, 211, 227, 229) - real_type(223),
+     quaternion_type(-24, 211, 227, 229) );
+    BOOST_CHECK_EQUAL( complex_type(241, 239) - quaternion_type(233, 251, -257,
+     263), quaternion_type(8, -12, 257, -263) );
+    BOOST_CHECK_EQUAL( quaternion_type(271, 281, 283, 293) - complex_type(269,
+     277), quaternion_type(2, 4, 283, 293) );
+
+    // Subtract-assignment
+    real_type        a = { 1 };
+    complex_type     b = { 2, 3 };
+    quaternion_type  c = { 4, 5, 6, 7 };
+
+    a -= real_type{ 8 };
+    BOOST_CHECK_EQUAL( a, real_type(-7) );
+    a -= -10;
+    BOOST_CHECK_EQUAL( a, real_type(3) );
+    b -= complex_type{ -1, 4 };
+    BOOST_CHECK_EQUAL( b, complex_type(3, -1) );
+    b -= a;
+    BOOST_CHECK_EQUAL( b, complex_type(0, -1) );
+    b -= 14;
+    BOOST_CHECK_EQUAL( b, complex_type(-14, -1) );
+    c -= quaternion_type{ 16, 17, 18, 20 };
+    BOOST_CHECK_EQUAL( c, quaternion_type(-12, -12, -12, -13) );
+    c -= b;
+    BOOST_CHECK_EQUAL( c, quaternion_type(2, -11, -12, -13) );
+    c -= a;
+    BOOST_CHECK_EQUAL( c, quaternion_type(-1, -11, -12, -13) );
+    c -= -21;
+    BOOST_CHECK_EQUAL( c, quaternion_type(20, -11, -12, -13) );
+
+    // Predecessor
+    BOOST_CHECK_EQUAL( --a, real_type(2) );
+    BOOST_CHECK_EQUAL( a--, real_type(2) );
+    BOOST_CHECK_EQUAL( a, real_type(1) );
+
+    BOOST_CHECK_EQUAL( --b, complex_type(-15, -1) );
+    BOOST_CHECK_EQUAL( b--, complex_type(-15, -1) );
+    BOOST_CHECK_EQUAL( b, complex_type(-16, -1) );
+
+    BOOST_CHECK_EQUAL( --c, quaternion_type(19, -11, -12, -13) );
+    BOOST_CHECK_EQUAL( c--, quaternion_type(19, -11, -12, -13) );
+    BOOST_CHECK_EQUAL( c, quaternion_type(18, -11, -12, -13) );
 }
 
 // Check the (new) conjugation operator.
@@ -1342,6 +1496,7 @@ BOOST_AUTO_TEST_SUITE_END()  // operator_tests
 
 BOOST_AUTO_TEST_SUITE( function_tests )
 
+// Check free-function real, imag, and unreal.
 BOOST_AUTO_TEST_CASE_TEMPLATE( test_real_imag_unreal, T, test_types )
 {
     // Reals
