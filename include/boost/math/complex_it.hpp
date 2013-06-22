@@ -84,9 +84,10 @@ Individual operations may have additional restrictions beyond those given below.
     \pre  0 \<= `Rank` \< log2( maximum allowable size )
 
     \tparam Number  The component type
-    \tparam Rank    The Cayley-Dickson construction level
+    \tparam Rank    The Cayley-Dickson construction level.  If not given, it
+                    defaults to 1, in order to model regular complex numbers.
  */
-template < typename Number, std::size_t Rank >
+template < typename Number, std::size_t Rank = 1u >
 struct complex_it
 {
     // Core types

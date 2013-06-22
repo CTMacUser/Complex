@@ -78,4 +78,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( complex_size_demo, T, test_types )
 #endif
 }
 
+// The complex-number class templates can substitute for std::complex.
+BOOST_AUTO_TEST_CASE_TEMPLATE( complex_substitution_demo, T, test_types )
+{
+    BOOST_REQUIRE_EQUAL( complex_rt<T>::rank, 1u );
+    BOOST_REQUIRE_EQUAL( complex_it<T>::rank, 1u );
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // general_complex_tests

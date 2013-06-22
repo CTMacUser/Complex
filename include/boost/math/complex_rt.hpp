@@ -46,7 +46,7 @@ namespace math
 //  Hypercomplex number (recursive) class template definitions  --------------//
 
 // Forward declaration since the base case is the (partial) specialization.
-template < typename Number, std::size_t Rank >
+template < typename Number, std::size_t Rank = 1u >
 struct complex_rt;
 
 /** \brief  A complex number class nesting its components, base case.
@@ -272,7 +272,8 @@ See the description for #boost::math::complex_it for more.
     \pre  Same as #boost::math::complex_it
 
     \tparam Number  The component type
-    \tparam Rank    The Cayley-Dickson construction level
+    \tparam Rank    The Cayley-Dickson construction level.  If not given, it
+                    defaults to 1, in order to model regular complex numbers.
  */
 template < typename Number, std::size_t Rank >
 struct complex_rt
