@@ -1095,6 +1095,7 @@ auto  operator +=( complex_rt<T, R> &augend_sum,complex_rt<U, R> const &addend )
     \relates  #boost::math::complex_rt
  */
 template < typename T, std::size_t R, typename U, std::size_t S >
+inline
 auto  operator +=( complex_rt<T, R> &augend_sum,complex_rt<U, S> const &addend )
  -> typename std::enable_if< (R > S), complex_rt<T, R> >::type &
 { return augend_sum.lower_barrage() += addend, augend_sum; }
@@ -1345,6 +1346,7 @@ auto  operator -=( complex_rt<T, R> &minuend_difference, complex_rt<U, R> const
     \relates  #boost::math::complex_rt
  */
 template < typename T, std::size_t R, typename U, std::size_t S >
+inline
 auto  operator -=( complex_rt<T, R> &minuend_difference, complex_rt<U, S> const
  &subtrahend )
  -> typename std::enable_if< (R > S), complex_rt<T, R> >::type &
@@ -1522,6 +1524,101 @@ inline constexpr
 auto  norm( complex_rt<T, R> const &x )
  -> decltype( std::declval<T>() * std::declval<T>() )
 { return norm(x.lower_barrage()) + norm(x.upper_barrage()); }
+
+
+//  Multiplication operators  ------------------------------------------------//
+
+/** \brief  Multiplication, scalar
+
+Calculates the product of the given values.  One of the factors is a real
+scalar; multiplication between a scalar and a hypercomplex number is easy to
+define.  (It's like scalar-vector multiplication.)
+
+The definition can be broken down as:
+- Real: `scalar * r`
+- Component-wise: `{ scalar * c[0], ..., scalar * c[ 2^Rank - 1 ] }`
+- Barrage-wise: `{ scalar * Lower, scalar * Upper }`
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T>() * declval<T>()` is well-formed.
+
+    \param[in] multiplicand  The first factor to be multiplied.
+    \param[in] multiplier    The second factor to be multiplied.
+
+    \returns  The product of `multiplicand` and `multiplier`.
+ */
+template < typename T >
+inline constexpr
+auto  operator *( T const &multiplicand, complex_rt<T, 0u> const &multiplier )
+ -> complex_rt<decltype( std::declval<T>() * std::declval<T>() ), 0u>
+{ return {multiplicand * multiplier[ 0 ]}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline constexpr
+auto  operator *( T const &multiplicand, complex_rt<T, R> const &multiplier )
+ -> complex_rt<decltype( std::declval<T>() * std::declval<T>() ), R>
+{
+    return { multiplicand * multiplier.lower_barrage(),
+     multiplicand * multiplier.upper_barrage() };
+}
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T >
+inline constexpr
+auto  operator *( complex_rt<T, 0u> const &multiplicand, T const &multiplier )
+ -> complex_rt<decltype( std::declval<T>() * std::declval<T>() ), 0u>
+{ return {multiplicand[ 0 ] * multiplier}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline constexpr
+auto  operator *( complex_rt<T, R> const &multiplicand, T const &multiplier )
+ -> complex_rt<decltype( std::declval<T>() * std::declval<T>() ), R>
+{
+    return { multiplicand.lower_barrage() * multiplier,
+     multiplicand.upper_barrage() * multiplier };
+}
+
+/** \brief  Multiply-and-assign, scalar
+
+Calculates the product of the given objects into the first.
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T &>() += declval<T>()` is well-formed.
+
+    \param[in,out] multiplicand_product  The first factor to be multiplied, and
+                                         the location of the future product.
+    \param[in]     multiplier            The second factor to be multiplied.
+
+    \returns  A reference to post-multiplication `multiplicand_product`.
+ */
+template < typename T >
+inline
+auto  operator *=( complex_rt<T,0u> &multiplicand_product, T const &multiplier )
+ -> complex_rt<T, 0u> &
+{ return multiplicand_product[0] *= multiplier, multiplicand_product; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline
+auto  operator *=( complex_rt<T, R> &multiplicand_product, T const &multiplier )
+ -> complex_rt<T, R> &
+{
+    multiplicand_product.lower_barrage() *= multiplier;
+    multiplicand_product.upper_barrage() *= multiplier;
+    return multiplicand_product;
+}
 
 
 //  Component functions  -----------------------------------------------------//

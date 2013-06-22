@@ -1492,6 +1492,62 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_conjugation, T, test_builtin_types )
     BOOST_CHECK_EQUAL( cc[3], -T{} );
 }
 
+// Check the multiplication-with-scalar operators.
+BOOST_AUTO_TEST_CASE_TEMPLATE(test_scalar_multiplication,T,test_floating_types)
+{
+    // Type-aliases
+    typedef complex_rt<T, 0>        real_type;
+    typedef complex_rt<T, 1>     complex_type;
+    typedef complex_rt<T, 2>  quaternion_type;
+
+    // Reals
+    auto const  z = T( -2.5 ) * real_type( T(1.25) );
+    auto const  y = real_type( T(7) ) * T( 5 );
+
+    BOOST_CHECK_CLOSE( z[0], T(-3.125), 0.0001);
+    BOOST_CHECK_CLOSE( y[0], T(35.0), 0.0001 );
+
+    // (Regular) complexes
+    auto const  a = T( 3 ) * complex_type{ T(-2), T(4) };
+    auto const  b = complex_type{ T{}, T(-5) } * T( -4 );
+
+    BOOST_CHECK_CLOSE( a[0], T(-6), 0.0001 );
+    BOOST_CHECK_CLOSE( a[1], T(12), 0.0001 );
+
+    BOOST_CHECK_CLOSE( b[0], T{}, 0.0001 );
+    BOOST_CHECK_CLOSE( b[1], T(20), 0.0001 );
+
+    // Quaternions
+    auto const  c = T( 3.12 ) * quaternion_type{ T(4.4), T{}, T(-10), T(6) };
+    auto const  d = quaternion_type{ T(-3), T(11), T(-5.1) } * T( -0.39 );
+
+    BOOST_CHECK_CLOSE( c[0], T(13.728), 0.0001 );
+    BOOST_CHECK_CLOSE( c[1], T{}, 0.0001 );
+    BOOST_CHECK_CLOSE( c[2], T(-31.2), 0.0001 );
+    BOOST_CHECK_CLOSE( c[3], T(18.72), 0.0001 );
+
+    BOOST_CHECK_CLOSE( d[0], T(1.17), 0.0001 );
+    BOOST_CHECK_CLOSE( d[1], T(-4.29), 0.0001 );
+    BOOST_CHECK_CLOSE( d[2], T(1.989), 0.0001 );
+    BOOST_CHECK_CLOSE( d[3], T{}, 0.0001 );
+
+    // Multiply-assignment
+    real_type        e = { T(1) };
+    complex_type     f = { T(2), T(3) };
+    quaternion_type  g = { T(4), T(5), T(6), T(7) };
+
+    e *= T( 10.1 );
+    BOOST_CHECK_CLOSE( e[0], T(10.1), 0.0001 );
+    f *= T( -3 );
+    BOOST_CHECK_CLOSE( f[0], T(-6), 0.0001 );
+    BOOST_CHECK_CLOSE( f[1], T(-9), 0.0001 );
+    g *= T( -2.5 );
+    BOOST_CHECK_CLOSE( g[0], T(-10), 0.0001 );
+    BOOST_CHECK_CLOSE( g[1], T(-12.5), 0.0001 );
+    BOOST_CHECK_CLOSE( g[2], T(-15), 0.0001 );
+    BOOST_CHECK_CLOSE( g[3], T(-17.5), 0.0001 );
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // operator_tests
 
 BOOST_AUTO_TEST_SUITE( function_tests )

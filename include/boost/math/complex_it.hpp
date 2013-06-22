@@ -1188,6 +1188,81 @@ auto  norm( complex_it<T, R> const &x )
 { return std::inner_product(begin(x), end(x), begin(x), decltype(norm(x)){}); }
 
 
+//  Multiplication operators  ------------------------------------------------//
+
+/** \brief  Multiplication, scalar
+
+Calculates the product of the given values.  One of the factors is a real
+scalar; multiplication between a scalar and a hypercomplex number is easy to
+define.  (It's like scalar-vector multiplication.) 
+
+The definition can be broken down as:
+- Real: `scalar * r`
+- Component-wise: `{ scalar * c[0], ..., scalar * c[ 2^Rank - 1 ] }`
+- Barrage-wise: `{ scalar * Lower, scalar * Upper }`
+
+    \relates  #boost::math::complex_it
+
+    \pre  `declval<T>() * declval<T>()` is well-formed.
+
+    \param[in] multiplicand  The first factor to be multiplied.
+    \param[in] multiplier    The second factor to be multiplied.
+
+    \returns  The product of `multiplicand` and `multiplier`.
+ */
+template < typename T, std::size_t R >
+auto  operator *( T const &multiplicand, complex_it<T, R> const &multiplier )
+ -> complex_it<decltype( std::declval<T>() * std::declval<T>() ), R>
+{
+    decltype( multiplicand * multiplier )  product;
+    auto                                   pb = begin( product );
+
+    for ( auto const &mm : multiplier )
+        *pb++ = multiplicand * mm;
+    // assert( pb == end(product) );
+    return product;
+}
+
+/** \overload
+    \relates  #boost::math::complex_it
+ */
+template < typename T, std::size_t R >
+auto  operator *( complex_it<T, R> const &multiplicand, T const &multiplier )
+ -> complex_it<decltype( std::declval<T>() * std::declval<T>() ), R>
+{
+    decltype( multiplicand * multiplier )  product;
+    auto                                   pb = begin( product );
+
+    for ( auto const &mm : multiplicand )
+        *pb++ = mm * multiplier;
+    // assert( pb == end(product) );
+    return product;
+}
+
+/** \brief  Multiply-and-assign, scalar
+
+Calculates the product of the given objects into the first.
+
+    \relates  #boost::math::complex_it
+
+    \pre  `declval<T &>() += declval<T>()` is well-formed.
+
+    \param[in,out] multiplicand_product  The first factor to be multiplied, and
+                                         the location of the future product.
+    \param[in]     multiplier            The second factor to be multiplied.
+
+    \returns  A reference to post-multiplication `multiplicand_product`.
+ */
+template < typename T, std::size_t R >
+auto  operator *=( complex_it<T, R> &multiplicand_product, T const &multiplier )
+ -> complex_it<T, R> &
+{
+    for ( auto &mp : multiplicand_product )
+        mp *= multiplier;
+    return multiplicand_product;
+}
+
+
 //  Component functions  -----------------------------------------------------//
 
 /** \brief  Real part
