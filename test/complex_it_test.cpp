@@ -1414,6 +1414,68 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_scalar_multiplication,T,test_floating_types)
     BOOST_CHECK_CLOSE( g[3], T(-17.5), 0.0001 );
 }
 
+// Check the division-with-scalar (including modulus) operators.
+BOOST_AUTO_TEST_CASE( test_scalar_division_and_modulus )
+{
+    // Integer
+    complex_it<int, 0>  a = { 9 };
+    complex_it<int, 1>  b = { 8, 3 };
+    complex_it<int, 2>  c = { 0, 4, 8, 12 };
+
+    BOOST_CHECK_EQUAL( real(a / 5), 1 );
+    BOOST_CHECK_EQUAL( real(a % 5), 4 );
+
+    BOOST_CHECK_EQUAL( (b / 4), decltype(b)(2, 0) );
+    BOOST_CHECK_EQUAL( (b % 4), decltype(b)(0, 3) );
+
+    BOOST_CHECK_EQUAL( (c / 3), decltype(c)(0, 1, 2, 4) );
+    BOOST_CHECK_EQUAL( (c % 3), decltype(c)(0, 1, 2, 0) );
+    BOOST_CHECK_EQUAL( (c / 3) * 3 + (c % 3), c );
+
+    a /= 2;
+    BOOST_CHECK_EQUAL( a, decltype(a)(4) );
+    a = 9;
+    a %= 2;
+    BOOST_CHECK_EQUAL( a, decltype(a)(1) );
+    b /= 1;
+    BOOST_CHECK_EQUAL( b, decltype(b)(8, 3) );
+    b %= 1;
+    BOOST_CHECK_EQUAL( b, decltype(b){} );
+    c *= 7;
+    BOOST_REQUIRE_EQUAL( c, decltype(c)(0, 28, 56, 84) );
+    c /= 5;
+    BOOST_CHECK_EQUAL( c, decltype(c)(0, 5, 11, 16) );
+    c = { 0, 28, 56, 84 };
+    c %= 5;
+    BOOST_CHECK_EQUAL( c, decltype(c)(0, 3, 1, 4) );
+
+    // Floating
+    complex_it<double, 0>  d = { -16.5 };
+    complex_it<double, 1>  e = { 7.0, 0.0 };
+    complex_it<double, 2>  f = { -3.0, 2.1, 1.21, -100.7 };
+
+    BOOST_CHECK_CLOSE( (d / -4.1)[0], 4.024, 0.1 );
+
+    BOOST_CHECK_CLOSE( (e / 0.5)[0], 14.0, 0.1 );
+    BOOST_CHECK_CLOSE( (e / 0.5)[1], 0.0, 0.1 );
+
+    BOOST_CHECK_CLOSE( (f / -0.02)[0],  150.0, 0.1 );
+    BOOST_CHECK_CLOSE( (f / -0.02)[1], -105.0, 0.1 );
+    BOOST_CHECK_CLOSE( (f / -0.02)[2],  -60.5, 0.1 );
+    BOOST_CHECK_CLOSE( (f / -0.02)[3], 5035.0, 0.1 );
+
+    d /= 0.25;
+    BOOST_CHECK_CLOSE( real(d), -66.0, 0.1 );
+    e /= -3.0;
+    BOOST_CHECK_CLOSE( real(e), -2.3333, 0.1 );
+    BOOST_CHECK_CLOSE( imag(e),  0.0,    0.1 );
+    f /= 12.1;
+    BOOST_CHECK_CLOSE( f[0], -0.2479, 0.1 );
+    BOOST_CHECK_CLOSE( f[1], +0.1735, 0.1 );
+    BOOST_CHECK_CLOSE( f[2],  0.1,    0.1 );
+    BOOST_CHECK_CLOSE( f[3], -8.3223, 0.1 );
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // operator_tests
 
 BOOST_AUTO_TEST_SUITE( function_tests )

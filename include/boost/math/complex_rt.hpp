@@ -1622,6 +1622,169 @@ auto  operator *=( complex_rt<T, R> &multiplicand_product, T const &multiplier )
 }
 
 
+//  Division operators  ------------------------------------------------------//
+
+/** \brief  Division, scalar
+
+Calculates the quotient of the given values.  The divisor is a real scalar;
+division by a scalar upon a hypercomplex number is easy to define.  (It's like
+element-wise division.)
+
+A scalar dividend and hypercomplex divisor is covered under Cayley division.
+
+The type of division, quotient-and-remainder (integer) or exact-quotient
+(floating or rational), matches that of the type's `value_type`.
+
+The definition can be broken down as:
+- Real: `r / scalar`
+- Component-wise: `{ c[0] / scalar, ..., c[ 2^Rank - 1 ] / scalar }`
+- Barrage-wise: `{ Lower / scalar, Upper / scalar }`
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T>() / declval<T>()` is well-formed.
+    \pre  `divisor` is *not* zero.
+
+    \param[in] dividend  The value to be divided.
+    \param[in] divisor   The value to divide by.
+
+    \returns  The quotient of `dividend` and `divisor`.
+ */
+template < typename T >
+inline constexpr
+auto  operator /( complex_rt<T, 0u> const &dividend, T const &divisor )
+ -> complex_rt<decltype( std::declval<T>() / std::declval<T>() ), 0u>
+{ return {dividend[ 0 ] / divisor}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline constexpr
+auto  operator /( complex_rt<T, R> const &dividend, T const &divisor )
+ -> complex_rt<decltype( std::declval<T>() / std::declval<T>() ), R>
+{
+    return { dividend.lower_barrage() / divisor, dividend.upper_barrage() /
+     divisor };
+}
+
+/** \brief  Modulo, scalar
+
+Calculates the remainder of the given values.  The divisor is a real scalar;
+division by a scalar upon a hypercomplex number is easy to define.  (It's like
+element-wise division.)
+
+A scalar dividend and hypercomplex divisor is covered under Cayley division.
+
+The type's `value_type` should use quotient-and-remainder division.
+
+The definition can be broken down as:
+- Real: `r % scalar`
+- Component-wise: `{ c[0] % scalar, ..., c[ 2^Rank - 1 ] % scalar }`
+- Barrage-wise: `{ Lower % scalar, Upper % scalar }`
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T>() % declval<T>()` is well-formed.
+    \pre  `divisor` is *not* zero.
+
+    \param[in] dividend  The value to be divided.
+    \param[in] divisor   The value to divide by.
+
+    \returns  The remainder from `divisor` dividing `dividend`.
+ */
+template < typename T >
+inline constexpr
+auto  operator %( complex_rt<T, 0u> const &dividend, T const &divisor )
+ -> complex_rt<decltype( std::declval<T>() % std::declval<T>() ), 0u>
+{ return {dividend[ 0 ] % divisor}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline constexpr
+auto  operator %( complex_rt<T, R> const &dividend, T const &divisor )
+ -> complex_rt<decltype( std::declval<T>() % std::declval<T>() ), R>
+{
+    return { dividend.lower_barrage() % divisor, dividend.upper_barrage() %
+     divisor };
+}
+
+/** \brief  Divide-and-assign, scalar
+
+Calculates the quotient of the given objects into the first.
+
+The type of division, quotient-and-remainder (integer) or exact-quotient
+(floating or rational), matches that of the type's `value_type`.
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T &>() /= declval<T>()` is well-formed.
+    \pre  `divisor` is *not* zero.
+
+    \param[in,out] dividend_quotient  The value to be divided, and the location
+                                      of the future quotient.
+    \param[in]     divisor            The value to divide by.
+
+    \returns  A reference to post-division `dividend_quotient`.
+ */
+template < typename T >
+inline
+auto  operator /=( complex_rt<T, 0u> &dividend_quotient, T const &divisor )
+ -> complex_rt<T, 0u> &
+{ return dividend_quotient[0] /= divisor, dividend_quotient; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline
+auto  operator /=( complex_rt<T, R> &dividend_quotient, T const &divisor )
+ -> complex_rt<T, R> &
+{
+    dividend_quotient.lower_barrage() /= divisor;
+    dividend_quotient.upper_barrage() /= divisor;
+    return dividend_quotient;
+}
+
+/** \brief  Modulo-and-assign, scalar
+
+Calculates the remainder of the given objects into the first.
+
+The type's `value_type` should use quotient-and-remainder division.
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T &>() %= declval<T>()` is well-formed.
+    \pre  `divisor` is *not* zero.
+
+    \param[in,out] dividend_remainder  The value to be divided, and the location
+                                       of the future remainder.
+    \param[in]     divisor             The value to divide by.
+
+    \returns  A reference to post-division `dividend_remainder`.
+ */
+template < typename T >
+inline
+auto  operator %=( complex_rt<T, 0u> &dividend_remainder, T const &divisor )
+ -> complex_rt<T, 0u> &
+{ return dividend_remainder[0] %= divisor, dividend_remainder; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R >
+inline
+auto  operator %=( complex_rt<T, R> &dividend_remainder, T const &divisor )
+ -> complex_rt<T, R> &
+{
+    dividend_remainder.lower_barrage() %= divisor;
+    dividend_remainder.upper_barrage() %= divisor;
+    return dividend_remainder;
+}
+
+
 //  Component functions  -----------------------------------------------------//
 
 /** \brief  Real part
