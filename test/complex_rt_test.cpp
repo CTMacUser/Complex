@@ -1492,8 +1492,64 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_conjugation, T, test_builtin_types )
     BOOST_CHECK_EQUAL( cc[3], -T{} );
 }
 
-// Check the multiplication-with-scalar operators.
-BOOST_AUTO_TEST_CASE_TEMPLATE(test_scalar_multiplication,T,test_floating_types)
+// Check the multiplication-with-scalar operators, integer edition.
+BOOST_AUTO_TEST_CASE_TEMPLATE(test_scalar_multiplication1,T,test_integer_types)
+{
+    // Type-aliases
+    typedef complex_rt<T, 0>        real_type;
+    typedef complex_rt<T, 1>     complex_type;
+    typedef complex_rt<T, 2>  quaternion_type;
+
+    // Reals
+    auto const  z = -T( 2 ) * real_type( T(1) );
+    auto const  y = real_type( T(7) ) * T( 5 );
+
+    BOOST_CHECK_EQUAL( z[0], -T(2) );
+    BOOST_CHECK_EQUAL( y[0], T(35) );
+
+    // (Regular) complexes
+    auto const  a = T( 3 ) * complex_type{ -T(2), T(4) };
+    auto const  b = complex_type{ T{}, -T(5) } * -T( 4 );
+
+    BOOST_CHECK_EQUAL( a[0], -T(6) );
+    BOOST_CHECK_EQUAL( a[1], T(12) );
+
+    BOOST_CHECK_EQUAL( b[0], T{} );
+    BOOST_CHECK_EQUAL( b[1], T(20) );
+
+    // Quaternions
+    auto const  c = T( 3 ) * quaternion_type{ T(4), T{}, -T(10), T(6) };
+    auto const  d = quaternion_type{ -T(3), T(11), -T(5) } * -T( 1 );
+
+    BOOST_CHECK_EQUAL( c[0], T(12) );
+    BOOST_CHECK_EQUAL( c[1], T{} );
+    BOOST_CHECK_EQUAL( c[2], -T(30) );
+    BOOST_CHECK_EQUAL( c[3], T(18) );
+
+    BOOST_CHECK_EQUAL( d[0], T(3) );
+    BOOST_CHECK_EQUAL( d[1], -T(11) );
+    BOOST_CHECK_EQUAL( d[2], T(5) );
+    BOOST_CHECK_EQUAL( d[3], T{} );
+
+    // Multiply-assignment
+    real_type        e = { T(1) };
+    complex_type     f = { T(2), T(3) };
+    quaternion_type  g = { T(4), T(5), T(6), T(7) };
+
+    e *= T( 10 );
+    BOOST_CHECK_EQUAL( e[0], T(10) );
+    f *= -T( 3 );
+    BOOST_CHECK_EQUAL( f[0], -T(6) );
+    BOOST_CHECK_EQUAL( f[1], -T(9) );
+    g *= -T( 5 );
+    BOOST_CHECK_EQUAL( g[0], -T(20) );
+    BOOST_CHECK_EQUAL( g[1], -T(25) );
+    BOOST_CHECK_EQUAL( g[2], -T(30) );
+    BOOST_CHECK_EQUAL( g[3], -T(35) );
+}
+
+// Check the multiplication-with-scalar operators, floating-point edition.
+BOOST_AUTO_TEST_CASE_TEMPLATE(test_scalar_multiplication2,T,test_floating_types)
 {
     // Type-aliases
     typedef complex_rt<T, 0>        real_type;
