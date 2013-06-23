@@ -1648,6 +1648,121 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_real_imag_unreal, T, test_types )
     BOOST_CHECK_EQUAL( unreal(f), (decltype(f){ T{}, T(11), T(13), T{} }) );
 }
 
+// Check the (non-Cayley) norm functions.
+BOOST_AUTO_TEST_CASE( test_norm )
+{
+    // Integer
+    complex_rt<int, 0>  a = { +4 }, b = { -3 };
+    complex_rt<int, 1>  c = { -4, +3 }, d = { a, b }, e = { -a, +b },
+                        f = { +a, -b };
+    complex_rt<int, 2>  g = { 5, 0, -2, 1 };
+
+    BOOST_CHECK_EQUAL( taxi(a), 4 );
+    BOOST_CHECK_CLOSE( abs(a), 4.0, 0.1 );
+    BOOST_CHECK_EQUAL( sup(a), 4 );
+    BOOST_CHECK_EQUAL( taxi(b), 3 );
+    BOOST_CHECK_CLOSE( abs(b), 3.0, 0.1 );
+    BOOST_CHECK_EQUAL( sup(b), 3 );
+
+    BOOST_CHECK_EQUAL( taxi(c), 7 );
+    BOOST_CHECK_EQUAL( taxi(d), 7 );
+    BOOST_CHECK_EQUAL( taxi(e), 7 );
+    BOOST_CHECK_EQUAL( taxi(f), 7 );
+    BOOST_CHECK_CLOSE( abs(c), 5.0, 0.1 );
+    BOOST_CHECK_CLOSE( abs(d), 5.0, 0.1 );
+    BOOST_CHECK_CLOSE( abs(e), 5.0, 0.1 );
+    BOOST_CHECK_CLOSE( abs(f), 5.0, 0.1 );
+    BOOST_CHECK_EQUAL( sup(c), 4 );
+    BOOST_CHECK_EQUAL( sup(d), 4 );
+    BOOST_CHECK_EQUAL( sup(e), 4 );
+    BOOST_CHECK_EQUAL( sup(f), 4 );
+
+    BOOST_CHECK_EQUAL( taxi(g), 8 );
+    BOOST_CHECK_CLOSE( abs(g), 5.4772, 0.1 );
+    BOOST_CHECK_EQUAL( sup(g), 5 );
+
+    // Floating
+    complex_rt<double, 0>  aa = { +4.0 }, bb = { -3.0 };
+    complex_rt<double, 1>  cc = { -4.0, +3.0 }, dd = { aa, bb },
+                           ee = { -aa, +bb }, ff = { +aa, -bb };
+    complex_rt<double, 2>  gg = { 5.0, 0.0, -2.0, 1.0 },
+                            h = { +3.0, -4.0, +12.0, -84.0 };
+    complex_rt<double, 3>   k = { 6.7, -0.9, -11.2, 0.01, 4.33, -8.25, 255.5 };
+
+    BOOST_CHECK_CLOSE( taxi(aa), 4.0, 0.1 );
+    BOOST_CHECK_CLOSE( abs(aa), 4.0, 0.1 );
+    BOOST_CHECK_CLOSE( sup(aa), 4.0, 0.1 );
+    BOOST_CHECK_CLOSE( taxi(bb), 3.0, 0.1 );
+    BOOST_CHECK_CLOSE( abs(bb), 3.0, 0.1 );
+    BOOST_CHECK_CLOSE( sup(bb), 3.0, 0.1 );
+
+    BOOST_CHECK_CLOSE( taxi(cc), 7.0, 0.1 );
+    BOOST_CHECK_CLOSE( taxi(dd), 7.0, 0.1 );
+    BOOST_CHECK_CLOSE( taxi(ee), 7.0, 0.1 );
+    BOOST_CHECK_CLOSE( taxi(ff), 7.0, 0.1 );
+    BOOST_CHECK_CLOSE( abs(cc), 5.0, 0.1 );
+    BOOST_CHECK_CLOSE( abs(dd), 5.0, 0.1 );
+    BOOST_CHECK_CLOSE( abs(ee), 5.0, 0.1 );
+    BOOST_CHECK_CLOSE( abs(ff), 5.0, 0.1 );
+    BOOST_CHECK_CLOSE( sup(cc), 4.0, 0.1 );
+    BOOST_CHECK_CLOSE( sup(dd), 4.0, 0.1 );
+    BOOST_CHECK_CLOSE( sup(ee), 4.0, 0.1 );
+    BOOST_CHECK_CLOSE( sup(ff), 4.0, 0.1 );
+
+    BOOST_CHECK_CLOSE( taxi(gg), 8.0, 0.1 );
+    BOOST_CHECK_CLOSE( abs(gg), 5.4772, 0.1 );
+    BOOST_CHECK_CLOSE( sup(gg), 5.0, 0.1 );
+
+    BOOST_CHECK_CLOSE( taxi(h), 103.0, 0.1 );
+    BOOST_CHECK_CLOSE( abs(h), 85.0, 0.1 );
+    BOOST_CHECK_CLOSE( sup(h), 84.0, 0.1 );
+
+    BOOST_CHECK_CLOSE( taxi(k), 286.89, 0.1 );
+    BOOST_CHECK_CLOSE( abs(k), 256.00, 0.1 );
+    BOOST_CHECK_CLOSE( sup(k), 255.5, 0.1 );
+}
+
+// Check the sign function.
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_sgn, T, test_floating_types )
+{
+    // Reals
+    complex_rt<T, 0> const  a = { T(+4) }, b = {}, c = { T(-3) },
+                            d = { T(0.1) }, e = { T(-0.5) };
+
+    BOOST_CHECK_CLOSE( sgn(a)[0], T(+1.0), 0.1 );
+    BOOST_CHECK_CLOSE( sgn(b)[0], T( 0.0), 0.1 );
+    BOOST_CHECK_CLOSE( sgn(c)[0], T(-1.0), 0.1 );
+    BOOST_CHECK_CLOSE( sgn(d)[0], T(+1.0), 0.1 );
+    BOOST_CHECK_CLOSE( sgn(e)[0], T(-1.0), 0.1 );
+
+    // (Regular) complexes
+    complex_rt<T, 1> const  f = {}, g = { T(3.0), T(-4.0) };
+    auto const              f_sgn = sgn( f ), g_sgn = sgn( g );
+
+    BOOST_CHECK_CLOSE( f_sgn[0], T{}, 0.1 );
+    BOOST_CHECK_CLOSE( f_sgn[1], T{}, 0.1 );
+    BOOST_CHECK_CLOSE( g_sgn[0], T(+0.6), 0.1 );
+    BOOST_CHECK_CLOSE( g_sgn[1], T(-0.8), 0.1 );
+
+    // Quaternions
+    complex_rt<T, 2> const  h = { T{}, T{}, T(0.1), T{} }, k = {},
+                            m = { T(+6.0), T(-8.0), T(+24.0), T(-168.0) };
+    auto const          h_sgn = sgn( h ), k_sgn = sgn( k ), m_sgn = sgn( m );
+
+    BOOST_CHECK_CLOSE( h_sgn[0], T( 0.0), 0.1 );
+    BOOST_CHECK_CLOSE( h_sgn[1], T( 0.0), 0.1 );
+    BOOST_CHECK_CLOSE( h_sgn[2], T(+1.0), 0.1 );
+    BOOST_CHECK_CLOSE( h_sgn[3], T( 0.0), 0.1 );
+    BOOST_CHECK_CLOSE( k_sgn[0], T{}, 0.1 );
+    BOOST_CHECK_CLOSE( k_sgn[1], T{}, 0.1 );
+    BOOST_CHECK_CLOSE( k_sgn[2], T{}, 0.1 );
+    BOOST_CHECK_CLOSE( k_sgn[3], T{}, 0.1 );
+    BOOST_CHECK_CLOSE( m_sgn[0], T(+0.03529), 0.1 );
+    BOOST_CHECK_CLOSE( m_sgn[1], T(-0.04706), 0.1 );
+    BOOST_CHECK_CLOSE( m_sgn[2], T(+0.14118), 0.1 );
+    BOOST_CHECK_CLOSE( m_sgn[3], T(-0.98824), 0.1 );
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // function_tests
 
 BOOST_AUTO_TEST_SUITE_END()  // complex_rt_tests

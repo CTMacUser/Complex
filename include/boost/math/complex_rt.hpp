@@ -27,7 +27,11 @@
 #ifndef BOOST_MATH_COMPLEX_RT_HPP
 #define BOOST_MATH_COMPLEX_RT_HPP
 
+#include <algorithm>
+#include <cinttypes>
+#include <cmath>
 #include <cstddef>
+#include <cstdlib>
 #include <ostream>
 #include <sstream>
 #include <tuple>
@@ -1836,6 +1840,123 @@ template < typename T, std::size_t R >
 inline
 auto  unreal( complex_rt<T, R> const &x ) -> complex_rt<T, R>
 { return x.unreal(); }
+
+
+//  Norm/distance functions  -------------------------------------------------//
+
+/** \brief  Taxicab (L-1) norm / Manhattan distance
+
+Returns the First order Lebesgue norm when treating the components of the given
+number like a vector.  It is defined as:
+
+- `Root<1>( |c[0]|^1 + ... + |c[2 ^ Rank - 1]|^1 )`
+
+which equals the sum of the absolute value of the components.
+
+Boost Quaternion and Octonion libraries call this function "l1," which is a
+small letter "L" followed by the numeral "1."  This is hard to discern with some
+fonts, since the characters look like each other (and the vertical line "|").
+This is why this library uses a different name for the function.
+
+    \pre  `declval<T>() < declval<T>()` is well-formed.
+    \pre  `-declval<T>()` is well-formed.
+    \pre  `+declval<T>()` is well-formed.
+    \pre  `declval<T>() + declval<T>()` is well-formed.
+
+    \param[in] x  The input value.
+
+    \returns  `||x||_1 := Sum{i}( |c[i]| )`.
+ */
+template < typename T >
+inline constexpr
+T  taxi( complex_rt<T, 0u> const &x )
+{ return (x[ 0 ] < T{}) ? -x[0] : +x[0]; }
+
+//! \overload
+template < typename T, std::size_t R >
+inline constexpr
+T  taxi( complex_rt<T, R> const &x )
+{ return taxi(x.lower_barrage()) + taxi(x.upper_barrage()); }
+
+/** \brief  Euclidean (L-2) norm / Euclidean distance
+
+Returns the Second order Lebesgue norm when treating the components of the given
+number like a vector.  It is also called the absolute value and the magnitude.
+It is defined as:
+
+- `Root<2>( |c[0]|^2 + ... + |c[2 ^ Rank - 1]|^2 )`
+
+which equals the square root of the Cayley-norm.
+
+    \pre  `sqrt( declval<T>() )` is well-formed, and `sqrt` can be found through
+          ADL.
+    \pre  For any given regular `T` value `y`, `y^2 == |y|^2`.
+
+    \param[in] x  The input value.
+
+    \returns  `||x||_2 := Sqrt( Sum{i}(|c[i]|^2) )`.
+ */
+template < typename T, std::size_t R >
+inline
+auto  abs( complex_rt<T, R> const &x )
+ -> decltype( sqrt(std::declval<T>() * std::declval<T>()) )
+{
+    using std::sqrt;
+
+    return sqrt( norm(x) );
+}
+
+/** \brief  Maximum (L-infinity) norm / Chebyshev distance
+
+Returns the Infinite order Lebesgue norm when treating the components of the
+given number like a vector.  It is also called the uniform norm, infinity norm,
+and supremum (sup) norm.  It is defined as:
+
+- `Limit{p -> Infinity}(Root<p>( |c[0]|^p + ... + |c[2 ^ Rank - 1]|^p ))`
+
+which equals the maximum of the components' absolute values.
+
+    \pre  `abs( declval<T>() )` is well-formed, and `abs` can be found through
+          ADL.
+    \pre  `declval<T>() < declval<T>()` is well-formed.
+
+    \param[in] x  The input value.
+
+    \returns  `||x||_infinity := Max{i}( |c[i]| )`.
+ */
+template < typename T >
+inline
+T  sup( complex_rt<T, 0u> const &x )
+{
+    using std::abs;
+
+    return abs( x[0] );
+}
+
+//! \overload
+template < typename T, std::size_t R >
+inline
+T  sup( complex_rt<T, R> const &x )
+{ return std::max(sup( x.lower_barrage() ), sup( x.upper_barrage() )); }
+
+/** \brief  Sign / Unit-vector
+
+Returns the direction of a hypercomplex value from the origin, expressed as a
+hypercomplex value with its magnitude nullified, i.e. scaled to 1.  When the
+input value is zero, zero is the returned sign.
+
+    \pre  `abs(x)` is well-formed.
+    \pre  `decltype(x)` should support the exact-quotient style of division.
+
+    \param[in] x  The input value.
+
+    \returns  `Sgn( x ) := x / Abs( x )`, when `x` is not zero.
+    \returns  0, when `x` is zero.
+ */
+template < typename T, std::size_t R >
+inline
+auto  sgn( complex_rt<T, R> const &x ) -> complex_rt<T, R>
+{ return x ? x / abs(x) : x; }
 
 
 }  // namespace math
