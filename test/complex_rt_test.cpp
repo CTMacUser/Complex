@@ -1802,7 +1802,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_sgn, T, test_floating_types )
 
     // Quaternions
     complex_rt<T, 2> const  h = { T{}, T{}, T(0.1), T{} }, k = {},
-                            m = { T(+6.0), T(-8.0), T(+24.0), T(-168.0) };
+                            m = { T(+0.6), T(-0.8), T(+2.4), T(-16.8) };
     auto const          h_sgn = sgn( h ), k_sgn = sgn( k ), m_sgn = sgn( m );
 
     BOOST_CHECK_CLOSE( h_sgn[0], T( 0.0), 0.1 );

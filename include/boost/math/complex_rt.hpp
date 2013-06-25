@@ -1598,7 +1598,7 @@ Calculates the product of the given objects into the first.
 
     \relates  #boost::math::complex_rt
 
-    \pre  `declval<T &>() += declval<T>()` is well-formed.
+    \pre  `declval<T &>() *= declval<T>()` is well-formed.
 
     \param[in,out] multiplicand_product  The first factor to be multiplied, and
                                          the location of the future product.
