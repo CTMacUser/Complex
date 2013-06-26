@@ -32,6 +32,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
+#include <functional>
 #include <iterator>
 #include <numeric>
 #include <ostream>
@@ -461,6 +462,100 @@ namespace detail
         using std::swap;
 
         return noexcept( swap(std::declval<T &>(), std::declval<U &>()) );
+    }
+
+    /** \brief  Adds the product of two hypercomplex numbers to another.
+        \param[in,out] augend_sum  Array segment where the products are added
+                                   to.  Must point to at least `2 ^ Max(rank_md,
+                                   rank_mr)` elements.  The memory can *not*
+                                   overlap with `multiplicand` or `multiplier`.
+        \param[in] do_subtract     Whether the products should be subtracted
+                                   from `augend_sum` instead of added.
+        \param[in] multiplicand    Array segment for the components of the
+                                   first factor.  Must point to at least
+                                   `2 ^ rank_md` elements.
+        \param[in] rank_md         Cayley-Dickson level of `multiplicand`.
+        \param[in] conjugate_md    Use the conjugate of `multiplicand` instead
+                                   of its value directly.
+        \param[in] multiplier      Array segment for the components of the
+                                   second factor.  Must point to at least
+                                   `2 ^ rank_mr` elements.
+        \param[in] rank_mr         Cayley-Dickson level of `multiplier`.
+        \param[in] conjugate_mr    Use the conjugate of `multiplier` instead of
+                                   its value directly.
+     */
+    template < typename As, typename Md, typename Mr >
+    void  add_cayley_product( As *augend_sum, bool do_subtract,
+     Md const *multiplicand, std::size_t rank_md, bool conjugate_md,
+     Mr const *  multiplier, std::size_t rank_mr, bool conjugate_mr )
+    {
+        using std::size_t;
+
+        std::function<void(As*, Md const*, Mr const*)>  action[] = {
+            []( As *as, Md const *md, Mr const *mr ) -> void  // add
+             { *as += *md * *mr; },
+            []( As *as, Md const *md, Mr const *mr ) -> void  // subtract
+             { *as -= *md * *mr; }
+        };
+        size_t const  md_length = 1ULL << rank_md, mr_length = 1ULL << rank_mr;
+        auto const    as_length = std::max( md_length, mr_length );
+
+        if ( !rank_md && !rank_mr )
+            // As +/-= realMd * realMr
+            action[ do_subtract ]( augend_sum, multiplicand, multiplier );
+        else if ( !rank_md )
+            // As +/-= realMd * vectorMr
+            for ( size_t i = 0u ; i < mr_length ; ++i )
+                // For conjugated numbers, reverse the add/subtract action,
+                // but only for the unreal parts.
+                action[ do_subtract != (conjugate_mr && i) ]( augend_sum++,
+                 multiplicand, multiplier++ );
+        else if ( !rank_mr )
+            // As +/-= vectorMd * realMr
+            for ( size_t i = 0u ; i < md_length ; ++i )
+                action[ do_subtract != (conjugate_md && i) ]( augend_sum++,
+                 multiplicand++, multiplier );
+        else if ( rank_md < rank_mr )
+        {
+            // As +/-= { Md * lowerMr, upperMr * Md }
+            add_cayley_product( augend_sum, do_subtract, multiplicand, rank_md,
+             conjugate_md, multiplier, rank_mr - 1u, conjugate_mr );
+            add_cayley_product( augend_sum + as_length / 2u, do_subtract !=
+             conjugate_mr, multiplier + mr_length / 2u, rank_mr - 1u, false,
+             multiplicand, rank_md, conjugate_md );
+            // Rules for splitting a number, starting a Ptr, of length Len:
+            // * Lower barrage: same Ptr, length Len / 2.
+            // * Upper barrage: start at Ptr + Len / 2, length Len / 2.
+            // * Conjugate number -> conjugate lower barrage
+            // * Conjugate number -> negated upper barrage
+            //   -> swtich add/subtract status and strip conjugate state
+            //   (unless the barrage is to be conjugated itself)
+        }
+        else if ( rank_md > rank_mr )
+        {
+            // As +/-= { lowerMd * Mr, upperMd * conj(Mr) }
+            add_cayley_product( augend_sum, do_subtract, multiplicand, rank_md -
+             1u, conjugate_md, multiplier, rank_mr, conjugate_mr );
+            add_cayley_product( augend_sum + as_length / 2u, do_subtract !=
+             conjugate_md, multiplicand + md_length / 2u, rank_md - 1u, false,
+             multiplier, rank_mr, !conjugate_mr );
+        }
+        else  // rank_md == rank_mr, both > 0
+        {
+            // As +/-= { lowerMd * lowerMr - conj(upperMr) * upperMd, upperMr *
+            //  lowerMd + upperMd * conj(lowerMr) }
+            add_cayley_product( augend_sum, do_subtract, multiplicand, rank_md -
+             1u, conjugate_md, multiplier, rank_mr - 1u, conjugate_mr );
+            add_cayley_product( augend_sum, !do_subtract != (conjugate_mr !=
+             conjugate_md), multiplier + mr_length / 2u, rank_mr - 1u, true,
+             multiplicand + md_length / 2u, rank_md - 1u, false );
+            add_cayley_product( augend_sum + as_length / 2u, do_subtract !=
+             conjugate_mr, multiplier + mr_length / 2u, rank_mr - 1u, false,
+             multiplicand, rank_md - 1u, conjugate_md );
+            add_cayley_product( augend_sum + as_length / 2u, do_subtract !=
+             conjugate_md, multiplicand + md_length / 2u, rank_md - 1u, false,
+             multiplier, rank_mr - 1u, !conjugate_mr );
+        }
     }
 
 }  // namespace detail
@@ -1243,6 +1338,59 @@ auto  operator *( complex_it<T, R> const &multiplicand, T const &multiplier )
     return product;
 }
 
+/** \brief  Multiplication, Cayley
+
+Calculates the product of the given values, where both are hypercomplex.  This
+is the key operation when going up the Cayley-Dickson construction ladder.
+
+Note that this operation is non-commutative starting from quaternions, and
+non-associative starting from octonions.  (It's always power-associative.)
+
+The definition can be broken down as:
+- Real: `rA * rB`
+- Component-wise: polynomial multiplication, where the two unit elements in
+  each product term combine.  The combined unit is dependent on the input units
+  involved, and (usually) their order.
+- Barrage-wise: `{ lowerA * lowerB - Conj(upperB) * upperA, upperB * lowerA +
+  upperA * Conj(lowerB) }`
+
+There are eight combinations of the barrage definition, 3 binary decisions, that
+still result in a purely-real Cayley-norm.
+- Swap the factors of the first term of the product's lower barrage.
+- Swap the factors of the second term of the product's lower barrage.
+- Switch which factor of the lower barrage's second term is conjugated.
+
+(There are four combinations for the product's upper barrage's formula, but
+they're fixed, determined from the four states that the lower barrage's second
+term can take.)  The combination used in library is the one used by Boost's
+Quaternion and Octonion libraries, and the Cayley-Dickson Construction page on
+Wikipedia.  It was also used by R. Shafer in his 1954 paper "On the algebras
+formed by the Cayley-Dickson process."
+
+    \relates  #boost::math::complex_it
+
+    \pre  `declval<T>() * declval<U>()` is well-formed.
+    \pre  The various additive/subtractive operators are well-formed.
+
+    \param[in] multiplicand  The first factor to be multiplied.
+    \param[in] multiplier    The second factor to be multiplied.
+
+    \returns  The product of `multiplicand` and `multiplier`.
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline
+auto  operator *( complex_it<T, R> const &multiplicand, complex_it<U, S> const
+ &multiplier )
+ -> complex_it<decltype( std::declval<T>() * std::declval<U>() ), ( R < S ) ? S
+ : R>
+{
+    decltype( multiplicand * multiplier )  product{};
+
+    detail::add_cayley_product( &product[0], false, &multiplicand[0], R, false,
+     &multiplier[0], S, false );
+    return product;
+}
+
 /** \brief  Multiply-and-assign, scalar
 
 Calculates the product of the given objects into the first.
@@ -1265,6 +1413,29 @@ auto  operator *=( complex_it<T, R> &multiplicand_product, T const &multiplier )
         mp *= multiplier;
     return multiplicand_product;
 }
+
+/** \brief  Multiply-and-assign, Cayley
+
+Calculates the product of the given objects into the first.
+
+    \relates  #boost::math::complex_it
+
+    \pre  `declval<T &>() *= declval<U>()` is well-formed.
+    \pre  The various additive/subtractive operators are well-formed.
+    \pre  `multiplier`'s rank doesn't exceed that of `multiplicand_product`.
+
+    \param[in,out] multiplicand_product  The first factor to be added, and the
+                                         location of the future product.
+    \param[in]     multiplier            The second factor to be multiplied.
+
+    \returns  A reference to post-multiplication `multiplicand_product`.
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline
+auto  operator *=( complex_it<T, R> &multiplicand_product, complex_it<U, S>
+ const &multiplier )
+ -> typename std::enable_if< (R >= S), complex_it<T, R> >::type &
+{ return multiplicand_product = multiplicand_product * multiplier; }
 
 
 //  Division operators  ------------------------------------------------------//

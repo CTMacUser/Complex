@@ -16,6 +16,7 @@
 #include "boost/math/complex_it.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <ios>
 #include <tuple>
 #include <type_traits>
@@ -40,6 +41,7 @@ namespace {
     typedef list<int, unsigned, mp::int512_t>            test_integer_types;
     typedef list<double, my_float>                      test_floating_types;
     typedef list<int, unsigned, double>                  test_builtin_types;
+    typedef list<int, std::intmax_t, mp::int512_t>        test_signed_types;
 
 }
 
@@ -1602,6 +1604,130 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_scalar_multiplication2,T,test_floating_types)
     BOOST_CHECK_CLOSE( g[1], T(-12.5), 0.0001 );
     BOOST_CHECK_CLOSE( g[2], T(-15), 0.0001 );
     BOOST_CHECK_CLOSE( g[3], T(-17.5), 0.0001 );
+}
+
+// Check the multiplication operators.
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_cayley_multiplication,T,test_signed_types )
+{
+    // Type-aliases
+    typedef complex_rt<T, 0>        real_type;
+    typedef complex_rt<T, 1>     complex_type;
+    typedef complex_rt<T, 2>  quaternion_type;
+    typedef complex_rt<T, 3>    octonion_type;
+
+    // Reals
+    real_type const  a = { T(8) }, b = { T(-9) }, c = { T(7) };
+
+    BOOST_CHECK_EQUAL( a * b, real_type(T( -72 )) );
+    BOOST_CHECK_EQUAL( b * a, real_type(T( -72 )) );
+
+    BOOST_CHECK_EQUAL( (a * b) * c, real_type(T( -504 )) );
+    BOOST_CHECK_EQUAL( a * (b * c), real_type(T( -504 )) );
+
+    // (Regular) complexes
+    complex_type const  d = { T(2), T(5) }, e = { T(4), T(-6) }, f = { T(-9),
+     T(6) }, g = { T(10) };
+
+    BOOST_CHECK_EQUAL( d * e, complex_type(T( 38 ), T( 8 )) );
+    BOOST_CHECK_EQUAL( e * d, complex_type(T( 38 ), T( 8 )) );
+
+    BOOST_CHECK_EQUAL( (d * e) * f, complex_type(T( -390 ), T( 156 )) );
+    BOOST_CHECK_EQUAL( d * (e * f), complex_type(T( -390 ), T( 156 )) );
+
+    BOOST_CHECK_EQUAL( e * f, complex_type(T( 0 ), T( 78 )) );
+    BOOST_CHECK_EQUAL( f * g, complex_type(T( -90 ), T( 60 )) );
+    BOOST_CHECK_EQUAL( g * f, complex_type(T( -90 ), T( 60 )) );
+
+    BOOST_CHECK_EQUAL( a * f, complex_type(T( -72 ), T( 48 )) );
+    BOOST_CHECK_EQUAL( f * a, complex_type(T( -72 ), T( 48 )) );
+
+    // Quaternions
+    quaternion_type const  h = { T(2), T(13), T(-5), T(17) }, k = { T(11), T(3),
+     T(-7), T(19) },       m = { T(-1), T(4), T{}, T(-9) },   n = { T(-6) };
+
+    BOOST_CHECK_EQUAL( h * k, quaternion_type(T( -375 ), T( 173 ), T( -265 ),
+     T( 149 )) );
+    BOOST_CHECK_EQUAL( k * h, quaternion_type(T( -375 ), T( 125 ), T( +127 ),
+     T( 301 )) );
+
+    BOOST_CHECK_EQUAL( (h * k) * m, quaternion_type(T( 1024 ), T( 712 ),
+     T( 2418 ), T( 4286 )) );
+    BOOST_CHECK_EQUAL( h * (k * m), quaternion_type(T( 1024 ), T( 712 ),
+     T( 2418 ), T( 4286 )) );
+
+    BOOST_CHECK_EQUAL( m * n, quaternion_type(T( 6 ), T( -24 ), T{}, T( 54 )) );
+    BOOST_CHECK_EQUAL( n * m, quaternion_type(T( 6 ), T( -24 ), T{}, T( 54 )) );
+
+    BOOST_CHECK_EQUAL( m * c, quaternion_type(T( -7 ), T( 28 ),T{}, T( -63 )) );
+    BOOST_CHECK_EQUAL( c * m, quaternion_type(T( -7 ), T( 28 ),T{}, T( -63 )) );
+    BOOST_CHECK_EQUAL( d * m, quaternion_type(T(-22), T(3), T(+45), T(-18)) );
+    BOOST_CHECK_EQUAL( m * d, quaternion_type(T(-22), T(3), T(-45), T(-18)) );
+
+    // Octonions
+    octonion_type const p = {T(7), T(-2), T(0), T(7), T(-8), T(6), T(1), T(-6)},
+     q = { T(3), T(3), T(-13), T(-8), T(11), T(12), T(-4), T(-11) },
+     r = { T(-5), T(9), T(10), T(6), T(-10), T(-11), T(9), T(9) };
+
+    BOOST_CHECK_EQUAL( p * q, octonion_type(T( 37 ), T( -21 ), T( -59 ),
+     T( 181 ), T( 207 ), T( 162 ), T( -221 ), T( -9 )) );
+    BOOST_CHECK_EQUAL( q * p, octonion_type(T( 37 ), T( 51 ), T( -123 ),
+     T( -251 ), T( -101 ), T( 42 ), T( 171 ), T( -181 )) );
+
+    BOOST_CHECK_EQUAL( (p * q) * r, octonion_type(T( 5430 ), T(  -475 ),
+     T(  3432 ), T( 2384 ), T( -3540 ), T(  526 ), T( 2813 ), T( -5445 )) );
+    BOOST_CHECK_EQUAL( p * (q * r), octonion_type(T( 5430 ), T( -1581 ),
+     T( -2530 ), T( 3460 ), T( -5078 ), T( 1362 ), T( 4369 ), T(  -675 )) );
+
+    BOOST_CHECK_EQUAL( (p * p) * p, octonion_type(T( -3647 ), T( 86 ), T( 0 ),
+     T( -301 ), T( 344 ), T( -258 ), T( -43 ), T( 258 )) );
+    BOOST_CHECK_EQUAL( p * (p * p), octonion_type(T( -3647 ), T( 86 ), T( 0 ),
+     T( -301 ), T( 344 ), T( -258 ), T( -43 ), T( 258 )) );
+
+    BOOST_CHECK_EQUAL( b * q, octonion_type(T( -27 ), T( -27 ), T( 117 ),
+     T( 72 ), T( -99 ), T( -108 ), T( 36 ), T( 99 )) );
+    BOOST_CHECK_EQUAL( q * b, octonion_type(T( -27 ), T( -27 ), T( 117 ),
+     T( 72 ), T( -99 ), T( -108 ), T( 36 ), T( 99 )) );
+    BOOST_CHECK_EQUAL( e * r, octonion_type(T( 34 ), T( 66 ), T( 76 ), T( -36 ),
+     T( -106 ), T(   16 ), T( -18 ), T(  90 )) );
+    BOOST_CHECK_EQUAL( r * e, octonion_type(T( 34 ), T( 66 ), T(  4 ), T(  84 ),
+     T(   26 ), T( -104 ), T(  90 ), T( -18 )) );
+    BOOST_CHECK_EQUAL( h * r, octonion_type(T( -179 ), T( -247 ), T( 120 ),
+     T(  102 ), T(  15 ), T(  46 ), T(  372 ), T( -214 )) );
+    BOOST_CHECK_EQUAL( r * h, octonion_type(T( -179 ), T(  153 ), T( -30 ),
+     T( -248 ), T( -55 ), T( -90 ), T( -336 ), T(  250 )) );
+
+    // Multiply-assignment
+    real_type        aa = a;
+    complex_type     dd = d;
+    quaternion_type  hh = h;
+    octonion_type    pp = p;
+
+    aa *= b;
+    BOOST_CHECK_EQUAL( aa, a * b );
+    dd *= e;
+    BOOST_CHECK_EQUAL( dd, d * e );
+    dd = f;
+    dd *= a;
+    BOOST_CHECK_EQUAL( dd, f * a );
+    hh *= k;
+    BOOST_CHECK_EQUAL( hh, h * k );
+    hh = m;
+    hh *= c;
+    BOOST_CHECK_EQUAL( hh, m * c );
+    hh = m;
+    hh *= d;
+    BOOST_CHECK_EQUAL( hh, m * d );
+    pp *= q;
+    BOOST_CHECK_EQUAL( pp, p * q );
+    pp = q;
+    pp *= b;
+    BOOST_CHECK_EQUAL( pp, q * b );
+    pp = r;
+    pp *= e;
+    BOOST_CHECK_EQUAL( pp, r * e );
+    pp = r;
+    pp *= h;
+    BOOST_CHECK_EQUAL( pp, r * h );
 }
 
 // Check the division-with-scalar (including modulus) operators.

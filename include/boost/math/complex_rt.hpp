@@ -1592,6 +1592,95 @@ auto  operator *( complex_rt<T, R> const &multiplicand, T const &multiplier )
      multiplicand.upper_barrage() * multiplier };
 }
 
+/** \brief  Multiplication, Cayley
+
+Calculates the product of the given values, where both are hypercomplex.  This
+is the key operation when going up the Cayley-Dickson construction ladder.
+
+Note that this operation is non-commutative starting from quaternions, and
+non-associative starting from octonions.  (It's always power-associative.)
+
+The definition can be broken down as:
+- Real: `rA * rB`
+- Component-wise: polynomial multiplication, where the two unit elements in
+  each product term combine.  The combined unit is dependent on the input units
+  involved, and (usually) their order.
+- Barrage-wise: `{ lowerA * lowerB - Conj(upperB) * upperA, upperB * lowerA +
+  upperA * Conj(lowerB) }`
+
+There are eight combinations of the barrage definition, 3 binary decisions, that
+still result in a purely-real Cayley-norm.
+- Swap the factors of the first term of the product's lower barrage.
+- Swap the factors of the second term of the product's lower barrage.
+- Switch which factor of the lower barrage's second term is conjugated.
+
+(There are four combinations for the product's upper barrage's formula, but
+they're fixed, determined from the four states that the lower barrage's second
+term can take.)  The combination used in library is the one used by Boost's
+Quaternion and Octonion libraries, and the Cayley-Dickson Construction page on
+Wikipedia.  It was also used by R. Shafer in his 1954 paper "On the algebras
+formed by the Cayley-Dickson process."
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T>() * declval<U>()` is well-formed.
+    \pre  The various additive/subtractive operators are well-formed.
+
+    \param[in] multiplicand  The first factor to be multiplied.
+    \param[in] multiplier    The second factor to be multiplied.
+
+    \returns  The product of `multiplicand` and `multiplier`.
+ */
+template < typename T, typename U >
+inline constexpr
+auto  operator *( complex_rt<T, 0u> const &multiplicand, complex_rt<U, 0u> const
+ &multiplier )
+ -> complex_rt<decltype( std::declval<T>() * std::declval<U>() ), 0u>
+{ return {multiplicand[ 0 ] * multiplier[ 0 ]}; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, typename U, std::size_t R >
+inline constexpr
+auto  operator *( complex_rt<T, R> const &multiplicand, complex_rt<U, R> const
+ &multiplier )
+ -> complex_rt<decltype( std::declval<T>() * std::declval<U>() ), R>
+{
+    return { multiplicand.lower_barrage() * multiplier.lower_barrage() -
+     ~multiplier.upper_barrage() * multiplicand.upper_barrage(),
+     multiplier.upper_barrage() * multiplicand.lower_barrage() +
+     multiplicand.upper_barrage() * ~multiplier.lower_barrage() };
+}
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline constexpr
+auto  operator *( complex_rt<T, R> const &multiplicand, complex_rt<U, S> const
+ &multiplier )
+ -> typename std::enable_if< (R < S), complex_rt<decltype( std::declval<T>() *
+ std::declval<U>() ), S> >::type
+{
+    return { multiplicand * multiplier.lower_barrage(),
+     multiplier.upper_barrage() * multiplicand };
+}
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline constexpr
+auto  operator *( complex_rt<T, R> const &multiplicand, complex_rt<U, S> const
+ &multiplier )
+ -> typename std::enable_if< (R > S), complex_rt<decltype( std::declval<T>() *
+ std::declval<U>() ), R> >::type
+{
+    return { multiplicand.lower_barrage() * multiplier,
+     multiplicand.upper_barrage() * ~multiplier };
+}
+
 /** \brief  Multiply-and-assign, scalar
 
 Calculates the product of the given objects into the first.
@@ -1622,6 +1711,62 @@ auto  operator *=( complex_rt<T, R> &multiplicand_product, T const &multiplier )
 {
     multiplicand_product.lower_barrage() *= multiplier;
     multiplicand_product.upper_barrage() *= multiplier;
+    return multiplicand_product;
+}
+
+/** \brief  Multiply-and-assign, Cayley
+
+Calculates the product of the given objects into the first.
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T &>() *= declval<U>()` is well-formed.
+    \pre  The various additive/subtractive operators are well-formed.
+    \pre  `multiplier`'s rank doesn't exceed that of `multiplicand_product`.
+
+    \param[in,out] multiplicand_product  The first factor to be added, and the
+                                         location of the future product.
+    \param[in]     multiplier            The second factor to be multiplied.
+
+    \returns  A reference to post-multiplication `multiplicand_product`.
+ */
+template < typename T, typename U >
+inline
+auto  operator *=( complex_rt<T, 0u> &multiplicand_product, complex_rt<U, 0u>
+ const &multiplier )
+ -> complex_rt<T, 0u> &
+{ return multiplicand_product[0] *= multiplier[0], multiplicand_product; }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, typename U, std::size_t R >
+auto  operator *=( complex_rt<T, R> &multiplicand_product, complex_rt<U, R>
+ const &multiplier )
+ -> complex_rt<T, R> &
+{
+    auto const  mp_copy = multiplicand_product;
+
+    multiplicand_product.lower_barrage() *=  multiplier.lower_barrage();
+    multiplicand_product.upper_barrage() *= ~multiplier.lower_barrage();
+    multiplicand_product.lower_barrage() -= ~multiplier.upper_barrage() *
+     mp_copy.upper_barrage();
+    multiplicand_product.upper_barrage() +=  multiplier.upper_barrage() *
+     mp_copy.lower_barrage();
+    return multiplicand_product;
+}
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline
+auto  operator *=( complex_rt<T, R> &multiplicand_product, complex_rt<U, S>
+ const &multiplier )
+ -> typename std::enable_if< (R > S), complex_rt<T, R> >::type &
+{
+    multiplicand_product.lower_barrage() *=  multiplier;
+    multiplicand_product.upper_barrage() *= ~multiplier;
     return multiplicand_product;
 }
 
