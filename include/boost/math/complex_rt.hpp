@@ -32,6 +32,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
+#include <limits>
 #include <ostream>
 #include <sstream>
 #include <tuple>
@@ -1817,6 +1818,63 @@ auto  operator /( complex_rt<T, R> const &dividend, T const &divisor )
      divisor };
 }
 
+/** \brief  Division, Cayley
+
+Calculates the quotient of the given values, where both operands are
+hypercomplex.  Division works via multiplication of a reciprocal (which makes it
+an exact-quotient type of division).  The dividend is the left-factor (a.k.a.
+the multiplicand) in this altered multiplication, and the reciprocal of the
+divisor is the right factor (a.k.a. the multiplier).
+
+The problem with just computing the divisor's reciprocal is integer types.  The
+reciprocal of a hypercomplex number is its conjugate divided by its (scalar)
+Cayley norm.  The norm is always larger than any of the components, so the
+reciprocal always reduces to zero in integer arithmetic.  To prevent this, the
+dividend should be multiplied by the divisor's conjugate before the scalar
+division by the divisor's norm, to ensure that the first product is large enough
+to give a useful answer after the division.  This method of applying the
+operations can work in general, but it risks overflow, so it's safer to not use
+it for types that don't need it.
+
+This function uses traits from `std::numeric_limits` to determine if a
+component type is integral before determining the order of operations.
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T>() / declval<U>()` is well-formed.
+    \pre  `divisor` is *not* zero.
+    \pre  The various additive, subtractive, and multiplicative operators are
+          well-formed.
+
+    \param[in] dividend  The value to be divided.
+    \param[in] divisor   The value to divide by.
+
+    \returns  The quotient of `dividend` and `divisor`.
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline
+auto  operator /( complex_rt<T, R> const &dividend, complex_rt<U, S> const
+ &divisor )
+ -> typename std::enable_if< std::numeric_limits<U>::is_integer,
+ complex_rt<decltype( std::declval<T>() / std::declval<U>() ), ( R < S ) ? S :
+ R> >::type  // for integers
+{
+    return (dividend * conj( divisor )) / static_cast<decltype(
+     std::declval<T>() * std::declval<U>() )>(norm( divisor ));
+}
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline
+auto  operator /( complex_rt<T, R> const &dividend, complex_rt<U, S> const
+ &divisor )
+ -> typename std::enable_if< not std::numeric_limits<U>::is_integer,
+ complex_rt<decltype( std::declval<T>() / std::declval<U>() ), ( R < S ) ? S :
+ R> >::type
+{ return dividend * (conj( divisor ) / norm( divisor )); }  // for non-integers
+
 /** \brief  Modulo, scalar
 
 Calculates the remainder of the given values.  The divisor is a real scalar;
@@ -1860,7 +1918,45 @@ auto  operator %( complex_rt<T, R> const &dividend, T const &divisor )
      divisor };
 }
 
-/** \brief  Divide-and-assign, scalar
+/** \brief  Modulo, Cayley
+
+Calculates the remainder of the given values, where both operands are
+hypercomplex.  Division works via multiplication of a reciprocal (which makes it
+an exact-quotient type of division).  The dividend is the left-factor (a.k.a.
+the multiplicand) in this altered multiplication, and the reciprocal of the
+divisor is the right factor (a.k.a. the multiplier).
+
+To prevent underflow, hypercomplex numbers with integer-type components need to
+multiply the dividend and the conjugate of the divisor before applying scalar
+division with the divisor's norm.  (When the component type is not an integer
+type, the divisor's conjugate and norm can be combined first to prevent
+overflow.)  Since fractions are involved even when using integer components, the
+result will usually be truncated from the true result.  This modulo operation
+returns that trunctated part; it has no real meaning in Cayley division, since
+it's an exact-quotient style.  (It can be used to recover the dividend given the
+divisor, quotient, and this remainder.)
+
+    \relates  #boost::math::complex_rt
+
+    \pre  `declval<T>() % declval<U>()` is well-formed.
+    \pre  `divisor` is *not* zero.
+    \pre  The various additive, subtractive, and multiplicative operators are
+          well-formed.
+
+    \param[in] dividend  The value to be divided.
+    \param[in] divisor   The value to divide by.
+
+    \returns  The remainder from `divisor` dividing `dividend`.
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline
+auto  operator %( complex_rt<T, R> const &dividend, complex_rt<U, S> const
+ &divisor )
+ -> complex_rt<decltype( std::declval<T>() % std::declval<U>() ), ( R < S ) ?
+ S : R>
+{ return dividend - ((dividend * conj(divisor)) / norm( divisor )) * divisor; }
+
+/** \brief  Divide-and-assign
 
 Calculates the quotient of the given objects into the first.
 
@@ -1869,8 +1965,13 @@ The type of division, quotient-and-remainder (integer) or exact-quotient
 
     \relates  #boost::math::complex_rt
 
-    \pre  `declval<T &>() /= declval<T>()` is well-formed.
+    \pre  `declval<T &>() /= declval<X>()` is well-formed, where `X` is `T` for
+          scalar divisors, and `U` for hypercomplex ones.
     \pre  `divisor` is *not* zero.
+    \pre  The various additive, subtractive, and multiplicative operators are
+          well-formed when the divisor is hypercomplex.
+    \pre  When `divisor` is a hypercomplex number, its rank doesn't exceed that
+          of `dividend_quotient`.
 
     \param[in,out] dividend_quotient  The value to be divided, and the location
                                       of the future quotient.
@@ -1897,7 +1998,36 @@ auto  operator /=( complex_rt<T, R> &dividend_quotient, T const &divisor )
     return dividend_quotient;
 }
 
-/** \brief  Modulo-and-assign, scalar
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline
+auto  operator /=( complex_rt<T, R> &dividend_quotient, complex_rt<U, S> const
+ &divisor )
+ -> typename std::enable_if< (R >= S) && std::numeric_limits<U>::is_integer,
+ complex_rt<T, R> >::type &
+{
+    dividend_quotient *= conj( divisor );
+    dividend_quotient /= norm( divisor );
+    return dividend_quotient;
+}
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline
+auto  operator /=( complex_rt<T, R> &dividend_quotient, complex_rt<U, S> const
+ &divisor )
+ -> typename std::enable_if< (R >= S) && not std::numeric_limits<U>::is_integer,
+ complex_rt<T, R> >::type &
+{
+    dividend_quotient *= conj( divisor ) / norm( divisor );
+    return dividend_quotient;
+}
+
+/** \brief  Modulo-and-assign
 
 Calculates the remainder of the given objects into the first.
 
@@ -1905,8 +2035,13 @@ The type's `value_type` should use quotient-and-remainder division.
 
     \relates  #boost::math::complex_rt
 
-    \pre  `declval<T &>() %= declval<T>()` is well-formed.
+    \pre  `declval<T &>() %= declval<X>()` is well-formed, where `X` is `T` for
+          scalar divisors, and `U` for hypercomplex ones.
     \pre  `divisor` is *not* zero.
+    \pre  The various additive, subtractive, and multiplicative operators are
+          well-formed when the divisor is hypercomplex.
+    \pre  When `divisor` is a hypercomplex number, its rank doesn't exceed that
+          of `dividend_remainder`.
 
     \param[in,out] dividend_remainder  The value to be divided, and the location
                                        of the future remainder.
@@ -1932,6 +2067,16 @@ auto  operator %=( complex_rt<T, R> &dividend_remainder, T const &divisor )
     dividend_remainder.upper_barrage() %= divisor;
     return dividend_remainder;
 }
+
+/** \overload
+    \relates  #boost::math::complex_rt
+ */
+template < typename T, std::size_t R, typename U, std::size_t S >
+inline
+auto  operator %=( complex_rt<T, R> &dividend_remainder, complex_rt<U, S> const
+ &divisor )
+ -> typename std::enable_if< (R >= S), complex_rt<T, R> >::type &
+{ return dividend_remainder -= (dividend_remainder / divisor) * divisor; }
 
 
 //  Component functions  -----------------------------------------------------//

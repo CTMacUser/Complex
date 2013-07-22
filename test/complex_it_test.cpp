@@ -1658,6 +1658,383 @@ BOOST_AUTO_TEST_CASE( test_scalar_division_and_modulus )
     BOOST_CHECK_CLOSE( f[3], -8.3223, 0.1 );
 }
 
+// Check the division (including modulus) operators.
+BOOST_AUTO_TEST_CASE( test_division_and_modulus )
+{
+    // Rational
+    {
+    typedef boost::rational<long long>      rational_type;
+    typedef complex_it<rational_type, 0>        real_type;
+    typedef complex_it<rational_type, 1>     complex_type;
+    typedef complex_it<rational_type, 2>  quaternion_type;
+    typedef complex_it<rational_type, 3>    octonion_type;
+
+    real_type const           two = { 2 },five = { 5 }, six = { 6 };
+    complex_type const  eight_ten = { 8, 10 },      one_one = { 1, 1 };
+    quaternion_type const  primed = { 2, 3, 5, 7 }, squared = { 4, 9, 25, 49 };
+    octonion_type const     super = { rational_type{57,180}, rational_type{-222,
+     180}, rational_type{287, 180}, rational_type{177, 180}, rational_type{-105,
+     180}, rational_type{-112, 180}, rational_type{-168, 180},
+     rational_type{-78, 180} },                       omega = {
+     rational_type{-571, 143}, rational_type{-34, 143}, rational_type{703, 143},
+     rational_type{676, 143}, rational_type{572, 143}, rational_type{-285, 143},
+     rational_type{263, 143}, rational_type{828, 143} };
+    auto  temp0 = six;
+    auto  temp1 = eight_ten;
+    auto  temp2 = primed;
+    auto  temp3 = omega;
+
+    BOOST_CHECK_EQUAL( six / two, real_type(rational_type{ 3 }) );
+    BOOST_CHECK_EQUAL( five / six, real_type(rational_type( 5, 6 )) );
+    temp0 /= two;
+    BOOST_CHECK_EQUAL( temp0, real_type(rational_type{ 3 }) );
+
+    BOOST_CHECK_EQUAL( eight_ten / two, complex_type(4, 5) );
+    BOOST_CHECK_EQUAL( eight_ten / five, complex_type(rational_type(8,5), 2) );
+    BOOST_CHECK_EQUAL( two / eight_ten, complex_type(rational_type( 4, 41 ),
+     rational_type( -5, 41 )) );
+    BOOST_CHECK_EQUAL( six / one_one, complex_type(3, -3) );
+    temp1 /= two;
+    BOOST_CHECK_EQUAL( temp1, complex_type(4, 5) );
+
+    BOOST_CHECK_EQUAL( eight_ten / one_one, complex_type(9, 1) );
+    BOOST_CHECK_EQUAL( (eight_ten + rational_type{ 1 }) / one_one,
+     complex_type(rational_type( 19, 2 ), rational_type( 1, 2 )) );
+    temp1 = eight_ten;
+    temp1 /= one_one;
+    BOOST_CHECK_EQUAL( temp1, complex_type(9, 1) );
+
+    BOOST_CHECK_EQUAL( primed / two, quaternion_type(rational_type{ 1 },
+     rational_type{ 3, 2 }, rational_type{ 5, 2 }, rational_type{ 7, 2 }) );
+    BOOST_CHECK_EQUAL( primed / -two, quaternion_type(rational_type{ -1 },
+     rational_type{ -3, 2 }, rational_type{ -5, 2 }, rational_type{ -7, 2 }) );
+    BOOST_CHECK_EQUAL( two / primed, quaternion_type(rational_type{ 4, 87 },
+     rational_type{ -6,87 },rational_type{ -10,87 },rational_type{ -14,87 }) );
+    BOOST_CHECK_EQUAL( (two / primed) * (primed / two), rational_type{1} );
+    BOOST_CHECK_EQUAL( (rational_type{25} * two) / primed, rational_type(25, 87)
+     * quaternion_type(4, -6, -10, -14) );
+    BOOST_CHECK_EQUAL( primed / eight_ten, quaternion_type(46, 4, -30, 106) /
+     rational_type{164} );
+    BOOST_CHECK_EQUAL( eight_ten / primed, quaternion_type(46, -4, 30, -106) /
+     rational_type{87} );
+    BOOST_CHECK_EQUAL( squared / primed, quaternion_type(503, 76, -54, 100) /
+     rational_type{87} );
+    BOOST_CHECK_EQUAL( primed / squared, quaternion_type(503, -76, 54, -100) /
+     rational_type{3123} );
+    temp2 /= two;
+    BOOST_CHECK_EQUAL( temp2, quaternion_type(rational_type{ 1 },
+     rational_type{ 3, 2 }, rational_type{ 5, 2 }, rational_type{ 7, 2 }) );
+    temp2 = primed;
+    temp2 /= eight_ten;
+    BOOST_CHECK_EQUAL( temp2, quaternion_type(46, 4, -30, 106) /
+     rational_type{164} );
+    temp2 = primed;
+    temp2 /= squared;
+    BOOST_CHECK_EQUAL( temp2, quaternion_type(503, -76, 54, -100) /
+     rational_type{3123} );
+
+    // (The above calculations can fit within "int," but the next two require
+    // "long," and the third one needs "long long" for the intermediate
+    // calculations.)
+    BOOST_CHECK_EQUAL( super / omega, octonion_type(22809358L, -21944780L,
+     -43116931L, -4047329L, 68594526L, 49063586L, 7821099L, -33736703L) /
+     rational_type{439477920L} );
+    BOOST_CHECK_EQUAL( omega / super, octonion_type(7177770L, 6905700L,
+     13568265L, 1273635L, -21585690L, -15439590L, -2461185L, 10616445L) /
+     rational_type{8011861L} );
+    BOOST_CHECK_EQUAL( (super / omega) * (omega / super), rational_type{1LL} );
+    temp3 /= super;
+    BOOST_CHECK_EQUAL( temp3, octonion_type(7177770L, 6905700L,
+     13568265L, 1273635L, -21585690L, -15439590L, -2461185L, 10616445L) /
+     rational_type{8011861L} );
+    }
+
+    // Floating
+    {
+    complex_it<double, 0> const  two = { 2.0 }, five = { 5.0 }, six = { 6.0 };
+    complex_it<double, 1> const  eight_ten = { 8.0,10.0 },one_one = { 1.0,1.0 };
+    complex_it<double, 2> const  primed = { 2.0, 3.0, 5.0, 7.0 },
+     squared = { 4.0, 9.0, 25.0, 49.0 };
+    complex_it<double, 3> const  super = { 0.316667, -1.233333, 1.594444,
+     0.983333, -0.583333, -0.622222, -0.933333, -0.433333 },
+     omega = { -3.993007, -0.237762, 4.916084, 4.727273, 4.0, -1.993007,
+     1.839161, 5.79021 };
+    auto  temp0 = six;
+    auto  temp1 = eight_ten;
+    auto  temp2 = primed;
+    auto  temp3 = omega;
+
+    BOOST_CHECK_CLOSE( (six / two)[0], 3.0, 0.1 );
+    BOOST_CHECK_CLOSE( (five / six)[0], 0.8333, 0.1 );
+
+    temp0 /= two;
+    BOOST_CHECK_CLOSE( temp0[0], 3.0, 0.1 );
+
+    auto const  ett = eight_ten / two, etf = eight_ten / five;
+    auto const  tet = two / eight_ten, soo = six / one_one;
+
+    BOOST_CHECK_CLOSE( ett[0], 4.0, 0.1 );
+    BOOST_CHECK_CLOSE( ett[1], 5.0, 0.1 );
+
+    BOOST_CHECK_CLOSE( etf[0], 1.6, 0.1 );
+    BOOST_CHECK_CLOSE( etf[1], 2.0, 0.1 );
+
+    BOOST_CHECK_CLOSE( tet[0],  4.0 / 41.0, 0.1 );  //  0.09756
+    BOOST_CHECK_CLOSE( tet[1], -5.0 / 41.0, 0.1 );  // -0.12195
+
+    BOOST_CHECK_CLOSE( soo[0],  3.0, 0.1 );
+    BOOST_CHECK_CLOSE( soo[1], -3.0, 0.1 );
+
+    temp1 /= two;
+    BOOST_CHECK_CLOSE( temp1[0], 4.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp1[1], 5.0, 0.1 );
+
+    auto const  etoo = eight_ten / one_one, etooo = (eight_ten + 1.0) / one_one;
+
+    BOOST_CHECK_CLOSE( etoo[0], 9.0, 0.1 );
+    BOOST_CHECK_CLOSE( etoo[1], 1.0, 0.1 );
+
+    BOOST_CHECK_CLOSE( etooo[0], 9.5, 0.1 );
+    BOOST_CHECK_CLOSE( etooo[1], 0.5, 0.1 );
+
+    temp1 = eight_ten;
+    temp1 /= one_one;
+    BOOST_CHECK_CLOSE( temp1[0], 9.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp1[1], 1.0, 0.1 );
+
+    auto const  pt = primed / two, pnt = primed / -two;
+    auto const  tp = two / primed, tppt = tp * pt;
+    auto const  tftp = (25.0 * two) / primed;
+
+    BOOST_CHECK_CLOSE( pt[0], 1.0, 0.1 );
+    BOOST_CHECK_CLOSE( pt[1], 1.5, 0.1 );
+    BOOST_CHECK_CLOSE( pt[2], 2.5, 0.1 );
+    BOOST_CHECK_CLOSE( pt[3], 3.5, 0.1 );
+
+    BOOST_CHECK_CLOSE( pnt[0], -1.0, 0.1 );
+    BOOST_CHECK_CLOSE( pnt[1], -1.5, 0.1 );
+    BOOST_CHECK_CLOSE( pnt[2], -2.5, 0.1 );
+    BOOST_CHECK_CLOSE( pnt[3], -3.5, 0.1 );
+
+    BOOST_CHECK_CLOSE( tp[0],   4.0 / 87.0, 0.1 );  //  0.045977
+    BOOST_CHECK_CLOSE( tp[1],  -6.0 / 87.0, 0.1 );  // -0.068966
+    BOOST_CHECK_CLOSE( tp[2], -10.0 / 87.0, 0.1 );  // -0.114943
+    BOOST_CHECK_CLOSE( tp[3], -14.0 / 87.0, 0.1 );  // -0.16092
+
+    BOOST_CHECK_CLOSE( tppt[0], 1.0, 0.1 );
+    BOOST_CHECK_SMALL( tppt[1], 0.001 );
+    BOOST_CHECK_SMALL( tppt[2], 0.001 );
+    BOOST_CHECK_SMALL( tppt[3], 0.001 );
+
+    BOOST_CHECK_CLOSE( tftp[0], 25.0 / 87.0 *   4.0, 0.1 );  //  1.149425
+    BOOST_CHECK_CLOSE( tftp[1], 25.0 / 87.0 *  -6.0, 0.1 );  // -1.724138
+    BOOST_CHECK_CLOSE( tftp[2], 25.0 / 87.0 * -10.0, 0.1 );  // -2.873563
+    BOOST_CHECK_CLOSE( tftp[3], 25.0 / 87.0 * -14.0, 0.1 );  // -4.022989
+
+    temp2 /= two;
+    BOOST_CHECK_CLOSE( temp2[0], 1.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp2[1], 1.5, 0.1 );
+    BOOST_CHECK_CLOSE( temp2[2], 2.5, 0.1 );
+    BOOST_CHECK_CLOSE( temp2[3], 3.5, 0.1 );
+
+    auto const  pet = primed / eight_ten, etp = eight_ten / primed;
+    auto const  sp = squared / primed, ps = primed / squared;
+
+    BOOST_CHECK_CLOSE( pet[0],  46.0 / 164.0, 0.1 );  //  0.280488
+    BOOST_CHECK_CLOSE( pet[1],   4.0 / 164.0, 0.1 );  //  0.024390
+    BOOST_CHECK_CLOSE( pet[2], -30.0 / 164.0, 0.1 );  // -0.182927
+    BOOST_CHECK_CLOSE( pet[3], 106.0 / 164.0, 0.1 );  //  0.646341
+
+    BOOST_CHECK_CLOSE( etp[0],   46.0 / 87.0, 0.1 );  //  0.528736
+    BOOST_CHECK_CLOSE( etp[1],   -4.0 / 87.0, 0.1 );  // -0.045977
+    BOOST_CHECK_CLOSE( etp[2],   30.0 / 87.0, 0.1 );  //  0.344828
+    BOOST_CHECK_CLOSE( etp[3], -106.0 / 87.0, 0.1 );  // -1.218391
+
+    BOOST_CHECK_CLOSE( sp[0], 503.0 / 87.0, 0.1 );  //  5.781609
+    BOOST_CHECK_CLOSE( sp[1],  76.0 / 87.0, 0.1 );  //  0.873563
+    BOOST_CHECK_CLOSE( sp[2], -54.0 / 87.0, 0.1 );  // -0.62069
+    BOOST_CHECK_CLOSE( sp[3], 100.0 / 87.0, 0.1 );  //  1.149425
+
+    BOOST_CHECK_CLOSE( ps[0],  503.0 / 3123.0, 0.1 );  //  0.161063
+    BOOST_CHECK_CLOSE( ps[1],  -76.0 / 3123.0, 0.1 );  // -0.024336
+    BOOST_CHECK_CLOSE( ps[2],   54.0 / 3123.0, 0.1 );  //  0.017291
+    BOOST_CHECK_CLOSE( ps[3], -100.0 / 3123.0, 0.1 );  // -0.032020
+
+    temp2 = primed;
+    temp2 /= eight_ten;
+    BOOST_CHECK_CLOSE( temp2[0],  46.0 / 164.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp2[1],   4.0 / 164.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp2[2], -30.0 / 164.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp2[3], 106.0 / 164.0, 0.1 );
+
+    temp2 = primed;
+    temp2 /= squared;
+    BOOST_CHECK_CLOSE( temp2[0],  503.0 / 3123.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp2[1],  -76.0 / 3123.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp2[2],   54.0 / 3123.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp2[3], -100.0 / 3123.0, 0.1 );
+
+    auto const  so = super / omega, os = omega / super, soos = so * os;
+
+    BOOST_CHECK_CLOSE( so[0],  22809358.0 / 439477920.0, 0.1 );  //  0.051901
+    BOOST_CHECK_CLOSE( so[1], -21944780.0 / 439477920.0, 0.1 );  // -0.049934
+    BOOST_CHECK_CLOSE( so[2], -43116931.0 / 439477920.0, 0.1 );  // -0.098109
+    BOOST_CHECK_CLOSE( so[3],  -4047329.0 / 439477920.0, 0.1 );  // -0.009209
+    BOOST_CHECK_CLOSE( so[4],  68594526.0 / 439477920.0, 0.1 );  //  0.156082
+    BOOST_CHECK_CLOSE( so[5],  49063586.0 / 439477920.0, 0.1 );  //  0.111641
+    BOOST_CHECK_CLOSE( so[6],   7821099.0 / 439477920.0, 0.1 );  //  0.017796
+    BOOST_CHECK_CLOSE( so[7], -33736703.0 / 439477920.0, 0.1 );  // -0.076765
+
+    BOOST_CHECK_CLOSE( os[0],   7177770.0 / 8011861.0, 0.1 );  //  0.895893
+    BOOST_CHECK_CLOSE( os[1],   6905700.0 / 8011861.0, 0.1 );  //  0.861935
+    BOOST_CHECK_CLOSE( os[2],  13568265.0 / 8011861.0, 0.1 );  //  1.693522
+    BOOST_CHECK_CLOSE( os[3],   1273635.0 / 8011861.0, 0.1 );  //  0.158969
+    BOOST_CHECK_CLOSE( os[4], -21585690.0 / 8011861.0, 0.1 );  // -2.694217
+    BOOST_CHECK_CLOSE( os[5], -15439590.0 / 8011861.0, 0.1 );  // -1.927092
+    BOOST_CHECK_CLOSE( os[6],  -2461185.0 / 8011861.0, 0.1 );  // -0.307193
+    BOOST_CHECK_CLOSE( os[7],  10616445.0 / 8011861.0, 0.1 );  //  1.325091
+
+    BOOST_CHECK_CLOSE( soos[0], 1.0, 0.1 );
+    BOOST_CHECK_SMALL( soos[1], 0.001 );
+    BOOST_CHECK_SMALL( soos[2], 0.001 );
+    BOOST_CHECK_SMALL( soos[3], 0.001 );
+    BOOST_CHECK_SMALL( soos[4], 0.001 );
+    BOOST_CHECK_SMALL( soos[5], 0.001 );
+    BOOST_CHECK_SMALL( soos[6], 0.001 );
+    BOOST_CHECK_SMALL( soos[7], 0.001 );
+
+    temp3 /= super;
+    BOOST_CHECK_CLOSE( temp3[0],   7177770.0 / 8011861.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp3[1],   6905700.0 / 8011861.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp3[2],  13568265.0 / 8011861.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp3[3],   1273635.0 / 8011861.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp3[4], -21585690.0 / 8011861.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp3[5], -15439590.0 / 8011861.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp3[6],  -2461185.0 / 8011861.0, 0.1 );
+    BOOST_CHECK_CLOSE( temp3[7],  10616445.0 / 8011861.0, 0.1 );
+    }
+
+    // Integer
+    {
+    typedef complex_it<int, 0>        real_type;
+    typedef complex_it<int, 1>     complex_type;
+    typedef complex_it<int, 2>  quaternion_type;
+    typedef complex_it<int, 3>    octonion_type;
+
+    complex_it<int, 0> const  two = { 2 }, five = { 5 }, six = { 6 };
+    complex_it<int, 1> const  eight_ten = { 8, 10 }, one_one = { 1, 1 };
+    complex_it<int, 2> const  primed = { 2, 3, 5, 7 }, squared = {4, 9, 25, 49};
+    complex_it<long,3> const  super = { 39, -81, 88, 60, -75, -94, -73, 68 },
+     omega = { -2030, -8258, 5636, 4613, -24813, -11991, 4862, -53 };
+    auto  temp0 = six;
+    auto  temp1 = eight_ten;
+    auto  temp2 = primed;
+    auto  temp3 = omega;
+
+    BOOST_CHECK_EQUAL( six / two, 3 );
+    BOOST_CHECK_EQUAL( six % two, 0 );
+    BOOST_CHECK_EQUAL( five / six, 0 );
+    BOOST_CHECK_EQUAL( five % six, 5 );
+    BOOST_CHECK_EQUAL( six / five, 1 );
+    BOOST_CHECK_EQUAL( six % five, 1 );
+
+    BOOST_CHECK_EQUAL( temp0 /= two, 3 );
+    temp0 = six;
+    BOOST_CHECK_EQUAL( temp0 %= two, 0 );
+    temp0 = five;
+    BOOST_CHECK_EQUAL( temp0 /= six, 0 );
+    temp0 = five;
+    BOOST_CHECK_EQUAL( temp0 %= six, 5 );
+    temp0 = six;
+    BOOST_CHECK_EQUAL( temp0 /= five, 1 );
+    temp0 = six;
+    BOOST_CHECK_EQUAL( temp0 %= five, 1 );
+
+    BOOST_CHECK_EQUAL( eight_ten / two, complex_type(4, 5) );
+    BOOST_CHECK_EQUAL( eight_ten % two, complex_type{} );
+    BOOST_CHECK_EQUAL( eight_ten / five, complex_type(1, 2) );
+     // = trunc( {8/5, 2} )
+    BOOST_CHECK_EQUAL( eight_ten % five, complex_type(3, 0) );
+    BOOST_CHECK_EQUAL( two / eight_ten, complex_type{} );
+     // = trunc( {4/41, -5/41} )
+    BOOST_CHECK_EQUAL( two % eight_ten, two );
+    BOOST_CHECK_EQUAL( six / one_one, complex_type(3, -3) );
+    BOOST_CHECK_EQUAL( six % one_one, complex_type{} );
+
+    BOOST_CHECK_EQUAL( temp1 /= two, complex_type(4, 5) );
+    temp1 = eight_ten;
+    BOOST_CHECK_EQUAL( temp1 %= two, complex_type{} );
+
+    BOOST_CHECK_EQUAL( eight_ten / one_one, complex_type(9, 1) );
+    BOOST_CHECK_EQUAL( eight_ten % one_one, complex_type{} );
+    BOOST_CHECK_EQUAL( (eight_ten + 1) / one_one, complex_type(9, 0) );
+     // = trunc( {9.5, 1/2} )
+    BOOST_CHECK_EQUAL( (eight_ten + 1) % one_one, complex_type(0, 1) );
+
+    temp1 = eight_ten;
+    BOOST_CHECK_EQUAL( temp1 /= one_one, complex_type(9, 1) );
+    temp1 = eight_ten;
+    BOOST_CHECK_EQUAL( temp1 %= one_one, complex_type{} );
+
+    BOOST_CHECK_EQUAL( primed / two, quaternion_type(1, 1, 2, 3) );
+     // = trunc( {1, 3/2, 5/2, 7/2} )
+    BOOST_CHECK_EQUAL( primed % two, quaternion_type(0, 1, 1, 1) );
+    BOOST_CHECK_EQUAL( primed / -two, quaternion_type(-1, -1, -2, -3) );
+     // = trunc( {-1, -3/2, -5/2, -7/2} )
+    BOOST_CHECK_EQUAL( primed % -two, quaternion_type( 0, +1, +1, +1) );
+    BOOST_CHECK_EQUAL( two / primed, quaternion_type{} );
+     // = trunc( {4/87, -6/87, -10/87, -14/87} )
+    BOOST_CHECK_EQUAL( two % primed, two );
+    BOOST_CHECK_EQUAL( (25 * two) / primed, quaternion_type(1, -1, -2, -4) );
+     // = trunc( {100/87, -150/87, -250/87, -350/87} )
+    BOOST_CHECK_EQUAL( (25 * two) % primed, quaternion_type(7, -7, 4) );
+
+    BOOST_CHECK_EQUAL( temp2 /= two, quaternion_type(1, 1, 2, 3) );
+    temp2 = primed;
+    BOOST_CHECK_EQUAL( temp2 %= two, quaternion_type(0, 1, 1, 1) );
+
+    BOOST_CHECK_EQUAL( primed / eight_ten, quaternion_type{} );
+     // = trunc( {23/82, 1/41, -15/82, 53/82} )
+    BOOST_CHECK_EQUAL( primed % eight_ten, primed );
+    BOOST_CHECK_EQUAL( eight_ten / primed, quaternion_type(0, 0, 0, -1) );
+     // = trunc( {46/87, -4/87, 30/87, -106/87} )
+    BOOST_CHECK_EQUAL( eight_ten % primed, quaternion_type(1, 5, 3, 2) );
+    BOOST_CHECK_EQUAL( squared / primed, quaternion_type(5, 0, 0, 1) );
+     // = trunc( {503/87, 76/87, -54/87, 100/87} )
+    BOOST_CHECK_EQUAL( squared % primed, quaternion_type(1, -1, -3, 12) );
+    BOOST_CHECK_EQUAL( primed / squared, quaternion_type{} );
+     // = trunc( {503/3123, -76/3123, 6/347, -100/3123} )
+    BOOST_CHECK_EQUAL( primed % squared, primed );
+
+    temp2 = primed;
+    BOOST_CHECK_EQUAL( temp2 /= eight_ten, quaternion_type{} );
+    temp2 = primed;
+    BOOST_CHECK_EQUAL( temp2 %= eight_ten, primed );
+    temp2 = primed;
+    BOOST_CHECK_EQUAL( temp2 /= squared, quaternion_type{} );
+    temp2 = primed;
+    BOOST_CHECK_EQUAL( temp2 %= squared, primed );
+
+    BOOST_CHECK_EQUAL( super / omega, octonion_type{} );
+     // = trunc( {3992075/908470632, 762529/454235316, 269753/227117658,
+     // -3595525/908470632, 459349/227117658, -582805/302823544,
+     // 289247/302823544, 66950/113558829} )
+    BOOST_CHECK_EQUAL( super % omega, super );
+    BOOST_CHECK_EQUAL( omega / super, octonion_type(91, -34, -24, 82, -41, 39,
+     -19, -12) );
+     // = trunc( {798415/8768, -762529/21920, -1969/80, 719105/8768,
+     // -459349/10960, 349683/8768, -867741/43840, -6695/548} )
+    BOOST_CHECK_EQUAL( omega % super, octonion_type(-37, 148, 74, -54, -314, 83,
+     74, 36) );
+ 
+    BOOST_CHECK_EQUAL( temp3 /= super, octonion_type(91, -34, -24, 82, -41, 39,
+     -19, -12) );
+    temp3 = omega;
+    BOOST_CHECK_EQUAL( temp3 %= super, octonion_type(-37, 148, 74, -54, -314,
+     83, 74, 36) );
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()  // operator_tests
 
 BOOST_AUTO_TEST_SUITE( function_tests )
