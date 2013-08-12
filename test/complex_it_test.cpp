@@ -1931,24 +1931,24 @@ BOOST_AUTO_TEST_CASE( test_division_and_modulus )
     auto  temp2 = primed;
     auto  temp3 = omega;
 
-    BOOST_CHECK_EQUAL( six / two, 3 );
-    BOOST_CHECK_EQUAL( six % two, 0 );
-    BOOST_CHECK_EQUAL( five / six, 0 );
-    BOOST_CHECK_EQUAL( five % six, 5 );
-    BOOST_CHECK_EQUAL( six / five, 1 );
-    BOOST_CHECK_EQUAL( six % five, 1 );
+    BOOST_CHECK_EQUAL( six / two, real_type(3) );
+    BOOST_CHECK_EQUAL( six % two, real_type{} );
+    BOOST_CHECK_EQUAL( five / six, real_type{} );
+    BOOST_CHECK_EQUAL( five % six, real_type(5) );
+    BOOST_CHECK_EQUAL( six / five, real_type(1) );
+    BOOST_CHECK_EQUAL( six % five, real_type(1) );
 
-    BOOST_CHECK_EQUAL( temp0 /= two, 3 );
+    BOOST_CHECK_EQUAL( temp0 /= two, real_type(3) );
     temp0 = six;
-    BOOST_CHECK_EQUAL( temp0 %= two, 0 );
+    BOOST_CHECK_EQUAL( temp0 %= two, real_type{} );
     temp0 = five;
-    BOOST_CHECK_EQUAL( temp0 /= six, 0 );
+    BOOST_CHECK_EQUAL( temp0 /= six, real_type{} );
     temp0 = five;
-    BOOST_CHECK_EQUAL( temp0 %= six, 5 );
+    BOOST_CHECK_EQUAL( temp0 %= six, real_type(5) );
     temp0 = six;
-    BOOST_CHECK_EQUAL( temp0 /= five, 1 );
+    BOOST_CHECK_EQUAL( temp0 /= five, real_type(1) );
     temp0 = six;
-    BOOST_CHECK_EQUAL( temp0 %= five, 1 );
+    BOOST_CHECK_EQUAL( temp0 %= five, real_type(1) );
 
     BOOST_CHECK_EQUAL( eight_ten / two, complex_type(4, 5) );
     BOOST_CHECK_EQUAL( eight_ten % two, complex_type{} );
