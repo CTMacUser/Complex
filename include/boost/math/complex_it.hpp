@@ -284,7 +284,7 @@ struct complex_it
                uninitialized if #value_type uses trivial default-construction,
                otherwise it acts the same as value-initialization.
      */
-    complex_it() = default;
+    constexpr  complex_it() = default;
     /** \brief  List-of-reals constructor / Single-real conversion
 
     Constructs a `complex_it` object from a list of real numbers.  Can act as a

@@ -139,7 +139,7 @@ struct complex_rt< Number, 0u >
                uninitialized if #value_type uses trivial default-construction,
                otherwise it acts the same as value-initialization.
      */
-    complex_rt() = default;
+    constexpr  complex_rt() = default;
     /** \brief  Single-real constructor
 
     Constructs a `complex_rt` object from a single real number.  Can act as a
@@ -360,7 +360,7 @@ struct complex_rt
                uninitialized if #value_type uses trivial default-construction,
                otherwise it acts the same as value-initialization.
      */
-    complex_rt() = default;
+    constexpr  complex_rt() = default;
     /** \brief  Single-real conversion
 
     Constructs a `complex_rt` object from a single real number.  Can act as a
