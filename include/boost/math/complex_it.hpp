@@ -306,11 +306,30 @@ struct complex_it
     constexpr  complex_it( value_type const &r, Args const &...i )
      : c{ r, i... }  {}
 
-    /** \brief  Convert from one or more non-longer `complex_it` objects.
+    /** \brief  Convert from a same-length `complex_it` object.
+
+    Constructs a `complex_it` from the components of a `complex_it` object with
+    equal #rank.  Can act as a conversion.
+
+        \pre  The component type for `that` has to be implicitly convertible to
+              #value_type.
+
+        \param[in] that  The source to copy.
+
+        \post  For `0 <= k <` #static_size, `(*this)[k] == that[k]`.
+     */
+    template <
+        typename   T,
+        typename     = typename std::enable_if<std::is_convertible<T,
+         value_type>::value>::type
+    >
+    complex_it( complex_it<T, rank> const &that )
+    { std::copy(&that[ 0 ], &that[ static_size ], &c[ 0 ]); }
+    /** \brief  Convert from one or more shorter `complex_it` objects.
 
     Constructs a `complex_it` from a concatenation of components from a given
-    list of `complex_it` objects.  The given sources do not need a common
-    component type.  Can act as a conversion.
+    list of `complex_it` objects (all with the same lower #rank).  The given
+    sources do not need a common component type.  Can act as a conversion.
 
         \pre  The component types for `first` and each `rest` all have to be
               implicitly convertible to #value_type.
@@ -332,22 +351,29 @@ struct complex_it
         typename    T,
         size_type   R,
         typename ...U,
-        typename      = typename std::enable_if<(R <= rank)>::type,
+        typename      = typename std::enable_if<(R < rank)>::type,
         typename      = typename std::enable_if<((1u + sizeof...( U )) <= (1ULL
          << ( rank - R )))>::type,
         typename      = typename std::enable_if<std::is_convertible<T,
          value_type>::value>::type
     >
     complex_it( complex_it<T, R> const &first, complex_it<U, R> const &...rest )
-    { copy_barrages(0u, first, rest...); }
+        : c{}
+    {
+        complex_it<value_type, R> const  converted[]{ first, rest... };
+        auto                             p = &c[ 0 ];
+
+        for ( auto const &x : converted )
+            p = std::copy( &x[0], &x[1ULL << R], p );
+    }
     /** \brief  Convert from a longer `complex_it` object.
 
     Constructs a `complex_it` from the first (i.e. real-ward) components of an
     object with a higher #rank.  The conversion is `explicit` to prevent
-    ambiguities with the non-longer conversion constructor.
+    ambiguities with the non-longer conversion constructors.
 
-        \pre  The component type for `senior` has to implicitly convertible to
-              #value_type.
+        \pre  The component type for `senior` has to be implicitly convertible
+              to #value_type.
 
         \param[in] senior  The source to copy.
 
@@ -393,23 +419,6 @@ struct complex_it
     }
 
 private:
-    // Implements the cross-copy/barrage/sub-barrage constructor, base case
-    void  copy_barrages( size_type start )
-    { std::fill(&c[ start ], &c[ static_size ], value_type{}); }
-
-    // Implements the cross-copy/barrage/sub-barrage constructor, main case
-    // (Assumes `R <= rank` and `start + ((1 + sizeof...(U)) << (rank - R)) <=
-    // static_size`.)
-    template < typename T, size_type R, typename ...U >
-    void  copy_barrages( size_type start, complex_it<T, R> const &first,
-     complex_it<U, R> const &...rest )
-    {
-        constexpr auto  barrage_length = static_size >> ( rank - R );
-
-        std::copy( &first[0], &first[barrage_length], &c[start] );
-        copy_barrages( start + barrage_length, rest... );
-    }
-
     // Member data
     value_type  c[ static_size ];
 };
