@@ -229,7 +229,7 @@ struct complex_rt< Number, 0u >
      */
     template < typename T, size_type R >
     explicit constexpr  complex_rt( complex_it<T, R> const &c )
-        : r{ static_cast<value_type>(c[ 0 ]) }
+        : complex_rt{ 0u, c }
     {}
 
     // More operators
@@ -253,11 +253,9 @@ private:
     friend class complex_rt<value_type, rank + 1u>;
 
     // Hidden constructor to take a specific component from a complex_it object.
-    template < size_type I, typename T, size_type R >
-    explicit constexpr
-    complex_rt( std::integral_constant<size_type, I>, complex_it<T, R> const
-     &c )
-        : r{ (I < complex_it<T, R>::static_size) ? static_cast<value_type>(c[I])
+    template < typename T, size_type R >
+    explicit constexpr  complex_rt( size_type i, complex_it<T, R> const &c )
+        : r{ (i < complex_it<T, R>::static_size) ? static_cast<value_type>(c[i])
           : value_type{} }
     {}
 
@@ -553,7 +551,7 @@ struct complex_rt
      */
     template < typename T, size_type R >
     explicit constexpr  complex_rt( complex_it<T, R> const &c )
-        : complex_rt{ std::integral_constant<size_type, 0u>{}, c }
+        : complex_rt{ 0u, c }
     {}
 
     // More operators
@@ -586,13 +584,9 @@ private:
     friend class complex_rt<value_type, rank + 1u>;
 
     // Hidden constructor to take specific components from a complex_it object.
-    template < size_type Start, typename T, size_type R >
-    explicit constexpr
-    complex_rt( std::integral_constant<size_type, Start>, complex_it<T, R> const
-     &c )
-        : b{ barrage_type{std::integral_constant<size_type, Start>{}, c},
-          barrage_type{std::integral_constant<size_type, Start + static_size /
-          2u>{}, c} }
+    template < typename T, size_type R >
+    explicit constexpr  complex_rt( size_type i, complex_it<T, R> const &c )
+        : b{ barrage_type{i, c}, barrage_type{i + static_size / 2u, c} }
     {}
 
     // Hidden constructor to value-initialize when sources run dry early.
