@@ -475,7 +475,8 @@ struct complex_rt
     >
     constexpr
     complex_rt( complex_rt<T, R> const &first, complex_rt<U, R> const &...rest )
-        : complex_rt{ std::integral_constant<size_type, 0u>{}, first, rest... }
+        : complex_rt{ 0u, (typename std::remove_extent< complex_rt<value_type,
+          R>[][1ULL << ( rank - R )] >::type){first, rest...} }
     {}
     /** \brief  Convert from a longer `complex_rt` object.
 
@@ -589,52 +590,22 @@ private:
         : b{ barrage_type{i, c}, barrage_type{i + static_size / 2u, c} }
     {}
 
-    // Hidden constructor to value-initialize when sources run dry early.
-    template < size_type Start >
-    explicit constexpr
-    complex_rt( std::integral_constant<size_type, Start> )  : b{}  {}
+    // Hidden constructor to take specific elements of a barrage array.
+    template < size_type N >
+    explicit constexpr  complex_rt( size_type i, barrage_type const (&bb)[N] )
+        : b{ bb[i], bb[i + 1u] }
+    {}  // assert( i <= N - 2 )
 
-    // Hidden constructor to take the first barrage coming.
-    template < typename T >
-    explicit //constexpr
-    complex_rt( std::integral_constant<size_type, 0u>, complex_rt<T, rank - 1u>
-     const &first )  : b{ first }  {}
-
-    // Hidden constructor to take the first two barrages coming.
-    template < typename T, typename U, typename ...V >
-    explicit //constexpr
-    complex_rt( std::integral_constant<size_type, 0u>,
-     complex_rt<T, rank - 1u> const &first,
-     complex_rt<U, rank - 1u> const &second,
-     complex_rt<V, rank - 1u> const &... )
-        : b{ first, second }
-    {}
-
-    // Hidden constructor to take the later barrages.
-    template < size_type Start, typename T, typename ...U >
-    explicit constexpr
-    complex_rt( std::integral_constant<size_type, Start>,
-     complex_rt<T, rank - 1u> const & ,
-     complex_rt<U, rank - 1u> const &...rest )
-        : complex_rt{ std::integral_constant<size_type, Start - static_size /
-          2u>{}, rest... }
-    {}
-
-    // Hidden constructor to handle sub-barrages.
+    // Hidden constructor to take specific elements of a sub-barrage array.
     template <
-        size_type    Start,
-        typename     T,
-        size_type    R,
-        typename  ...U,
-        typename       = typename std::enable_if<(R < rank - 1u)>::type
+        size_type  R,
+        size_type  N,
+        typename     = typename std::enable_if<(R < rank - 1u)>::type
     >
-    explicit constexpr
-    complex_rt( std::integral_constant<size_type, Start> marker, complex_rt<T,
-     R> const &first, complex_rt<U, R> const &...rest )
-        : b{ barrage_type{marker, first, rest...}, barrage_type{
-          std::integral_constant<size_type, Start + static_size / 2u>{}, first,
-          rest...} }
-    {}
+    explicit constexpr  complex_rt( size_type i, complex_rt<value_type, R> const
+     (&bb)[N] )
+        : b{ barrage_type{i, bb}, barrage_type{i + (1u << ( rank-R-1u )), bb} }
+    {}  // assert( i <= N - (1 << ( rank - R )) )  // Hope that's right....
 
     // Member data
     barrage_type  b[ 2 ];
